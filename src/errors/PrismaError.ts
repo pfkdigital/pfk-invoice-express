@@ -1,12 +1,10 @@
 export class PrismaError extends Error {
-  constructor(
-    public code: string,
-    public statusCode: number,
-    message: string,
-  ) {
+  public readonly errorCode: string;
+  public readonly statusCode: number;
+
+  constructor(message: string, errorCode: string, statusCode: number) {
     super(message);
-    this.name = 'prisma-error';
-    this.code = code;
+    this.errorCode = errorCode;
     this.statusCode = statusCode;
   }
 }

@@ -26,11 +26,11 @@ export const errorHandlerMiddleWare = (
   }
 
   if (err instanceof PrismaError) {
+    console.log('true');
     return res.status(err.statusCode).json({
-      code: err.code,
+      prismaErrorCode: err.errorCode,
       statusCode: err.statusCode,
       message: err.message,
-      description: 'prisma-error',
     });
   }
 

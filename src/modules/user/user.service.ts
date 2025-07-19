@@ -1,12 +1,16 @@
 import { CreateUserDto, UpdateUserDto } from '../../types/user.types';
 import * as userRepository from './user.repository';
 import { AppError } from '../../errors/AppError';
-import { HttpStatus } from '../../enum/http-status.enum';
+import { HttpStatus } from '../../enums/http-status.enum';
+import { PrismaError } from '../../errors/PrismaError';
 
 export const createUser = async (data: CreateUserDto) => {
   try {
     return await userRepository.createUser(data);
   } catch (error) {
+    if (error instanceof PrismaError) {
+      throw error;
+    }
     throw new AppError(
       'Failed to create user',
       HttpStatus.INTERNAL_SERVER_ERROR,
@@ -18,6 +22,9 @@ export const getAllUsers = async () => {
   try {
     return await userRepository.getAllUsers();
   } catch (error) {
+    if (error instanceof PrismaError) {
+      throw error;
+    }
     throw new AppError(
       'Failed to retrieve users',
       HttpStatus.INTERNAL_SERVER_ERROR,
@@ -33,7 +40,7 @@ export const getUserById = async (id: string) => {
     }
     return user;
   } catch (error) {
-    if (error instanceof AppError) {
+    if (error instanceof PrismaError) {
       throw error;
     }
     throw new AppError(
@@ -51,7 +58,7 @@ export const updateUser = async (id: string, data: UpdateUserDto) => {
     }
     return await userRepository.updateUser(id, data);
   } catch (error) {
-    if (error instanceof AppError) {
+    if (error instanceof PrismaError) {
       throw error;
     }
     throw new AppError(
@@ -69,7 +76,7 @@ export const deleteUser = async (id: string) => {
     }
     return await userRepository.deleteUser(id);
   } catch (error) {
-    if (error instanceof AppError) {
+    if (error instanceof PrismaError) {
       throw error;
     }
     throw new AppError(

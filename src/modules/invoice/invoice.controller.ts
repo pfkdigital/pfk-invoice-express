@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import * as invoiceService from "./invoice.service";
 import { CreateInvoiceDto, UpdateInvoiceDto } from "../../types/invoice.types";
-import { HttpStatus } from "../../enum/http-status.enum";
+import { HttpStatus } from "../../enums/http-status.enum";
 
 export const createInvoice = async (
   req: Request,

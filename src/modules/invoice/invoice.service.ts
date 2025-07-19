@@ -1,7 +1,7 @@
 import * as invoiceRepository from "./invoice.repository";
 import { AppError } from "../../errors/AppError";
 import { CreateInvoiceDto, UpdateInvoiceDto } from "../../types/invoice.types";
-import { HttpStatus } from "../../enum/http-status.enum";
+import { HttpStatus } from "../../enums/http-status.enum";
 
 export const createInvoice = async (data: CreateInvoiceDto) => {
   try {

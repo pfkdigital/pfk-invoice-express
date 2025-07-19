@@ -1,20 +1,20 @@
-import { Router } from "express";
-import * as userController from "./user.controller";
-import { validationHandler } from "../../handlers/validationHandler";
-import { CreateUserSchema } from "../../types/user.schema";
-import { UpdateInvoiceDtoSchema } from "../../types/invoice.schema";
+import { Router } from 'express';
+import * as userController from './user.controller';
+import { validationMiddleware } from '../../middleware/validation.middleware';
+import { CreateUserSchema } from '../../types/user.schema';
+import { UpdateInvoiceDtoSchema } from '../../types/invoice.schema';
 
 export const clientsRouter = Router();
 clientsRouter.post(
-  "/users",
-  validationHandler(CreateUserSchema),
-  userController.createUser
+  '/users',
+  validationMiddleware(CreateUserSchema),
+  userController.createUser,
 );
-clientsRouter.get("/users", userController.getAllUsers);
+clientsRouter.get('/users', userController.getAllUsers);
 clientsRouter.get(
-  "/users/:id",
-  validationHandler(UpdateInvoiceDtoSchema),
-  userController.getUserById
+  '/users/:id',
+  validationMiddleware(UpdateInvoiceDtoSchema),
+  userController.getUserById,
 );
-clientsRouter.put("/users/:id", userController.updateUser);
-clientsRouter.delete("/users/:id", userController.deleteUser);
+clientsRouter.put('/users/:id', userController.updateUser);
+clientsRouter.delete('/users/:id', userController.deleteUser);

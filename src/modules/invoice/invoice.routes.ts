@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import * as invoiceController from './invoice.controller';
-import { validationHandler } from '../../handlers/validationHandler';
+import { validationMiddleware } from '../../middleware/validation.middleware';
 import {
   CreateInvoiceDtoSchema,
   UpdateInvoiceDtoSchema,
@@ -9,14 +9,14 @@ import {
 export const invoiceRouter = Router();
 invoiceRouter.post(
   '/invoices',
-  validationHandler(CreateInvoiceDtoSchema),
+  validationMiddleware(CreateInvoiceDtoSchema),
   invoiceController.createInvoice,
 );
 invoiceRouter.get('/invoices', invoiceController.getAllInvoices);
 invoiceRouter.get('/invoices/:id', invoiceController.getInvoiceById);
 invoiceRouter.put(
   '/invoices/:id',
-  validationHandler(UpdateInvoiceDtoSchema),
+  validationMiddleware(UpdateInvoiceDtoSchema),
   invoiceController.updateInvoice,
 );
 invoiceRouter.delete('/invoices/:id', invoiceController.deleteInvoice);

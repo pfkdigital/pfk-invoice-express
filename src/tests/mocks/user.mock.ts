@@ -1,19 +1,3 @@
-export const mockUser = {
-  id: 'user-123',
-  userName: 'john_doe',
-  userEmail: 'john@example.com',
-  userPhone: '+1-555-123-4567',
-  userAddress: [{
-    id: 'address-123',
-    street: '123 Main Street',
-    city: 'New York',
-    country: 'United States',
-    postalCode: '10001',
-    userId: 'user-123',
-  }],
-  invoices: [],
-};
-
 export const mockCreateUserDto = {
   userName: 'john_doe',
   userEmail: 'john@example.com',
@@ -38,3 +22,23 @@ export const mockUpdateUserDto = {
     postalCode: '02101',
   },
 };
+
+export const mockUser = {
+  id: 'user-123',
+  userName: 'john_doe',
+  userEmail: 'john@example.com',
+  userPhone: '+1-555-123-4567',
+  userAddress: [
+    {
+      id: 'address-123',
+      street: '123 Main Street',
+      city: 'New York',
+      country: 'United States',
+      postalCode: '10001',
+      userId: 'user-123',
+    },
+  ],
+  invoices: [],
+};
+
+export const mockUsers = [mockUser];

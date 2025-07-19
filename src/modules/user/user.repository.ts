@@ -19,6 +19,9 @@ export const createUser = async (data: CreateUserDto) => {
           },
         },
       },
+      include: {
+        userAddress: true,
+      },
     });
   } catch (error) {
     prismaErrorHandler(error);
@@ -70,7 +73,7 @@ export const updateUser = async (id: string, data: UpdateUserDto) => {
           },
         },
       },
-    })
+    });
   } catch (error) {
     console.log('Error updating user:', error);
     prismaErrorHandler(error);

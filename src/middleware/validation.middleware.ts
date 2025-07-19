@@ -2,10 +2,10 @@
 import { ZodType, ZodError } from 'zod';
 import { Request, Response, NextFunction } from 'express';
 import { AppError } from '../errors/AppError';
-import { HttpStatus } from '../enum/http-status.enum';
+import { HttpStatus } from '../enums/http-status.enum';
 import { ValidationError } from '../errors/ValidationError';
 
-export const validationHandler =
+export const validationMiddleware =
   (schema: ZodType<any>) =>
   (req: Request, res: Response, next: NextFunction) => {
     try {
