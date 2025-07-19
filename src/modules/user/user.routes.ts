@@ -1,6 +1,6 @@
 import { Router } from "express";
 import * as userController from "./user.controller";
-import { validationHandler } from "../../middleware/validationHandler";
+import { validationHandler } from "../../handlers/validationHandler";
 import { CreateUserSchema } from "../../types/user.schema";
 import { UpdateInvoiceDtoSchema } from "../../types/invoice.schema";
 

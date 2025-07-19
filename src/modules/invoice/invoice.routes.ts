@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import * as invoiceController from './invoice.controller';
-import { validationHandler } from '../../middleware/validationHandler';
+import { validationHandler } from '../../handlers/validationHandler';
 import {
   CreateInvoiceDtoSchema,
   UpdateInvoiceDtoSchema,
