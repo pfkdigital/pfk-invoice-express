@@ -15,12 +15,12 @@ datasource db {
 }
 
 
-model User {
+model Client {
   id String @id @default(cuid())
-  userName String @unique
-  userEmail String @unique
-  userPhone String @unique
-  userAddress Address[]
+  clientName String @unique
+  clientEmail String @unique
+  clientPhone String @unique
+  clientAddress Address[]
   invoices Invoice[]
 }
 
@@ -30,19 +30,20 @@ model Address {
   city String
   postalCode String
   country String
-  userId String
-  client User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clientId String
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
 }
 
 model Invoice {
   id String @id @default(cuid())
   invoiceReference String @unique
+  description String
   status InvoiceStatus
   invoiceDate DateTime
   dueDate DateTime
   totalAmount Float
-  userId String
-  client User @relation(fields: [userId], references: [id])
+  clientId String
+  client Client @relation(fields: [clientId], references: [id])
   invoiceItems InvoiceItem[]
 }
 

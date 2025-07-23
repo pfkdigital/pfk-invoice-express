@@ -2,6 +2,7 @@ import z from 'zod';
 
 export const CreateInvoiceDtoSchema = z.object({
   invoiceReference: z.string(),
+  description: z.string(),
   status: z.enum(['PENDING', 'PAID', 'OVERDUE']),
   invoiceDate: z.string().refine((date) => !isNaN(Date.parse(date)), {
     message: 'Invalid date format',

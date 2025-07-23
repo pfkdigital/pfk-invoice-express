@@ -1,4 +1,5 @@
 export class PrismaError extends Error {
+  [x: string]: any;
   public readonly errorCode: string;
   public readonly statusCode: number;
 

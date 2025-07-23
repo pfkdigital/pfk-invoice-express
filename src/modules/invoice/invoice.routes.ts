@@ -20,3 +20,9 @@ invoiceRouter.put(
   invoiceController.updateInvoice,
 );
 invoiceRouter.delete('/invoices/:id', invoiceController.deleteInvoice);
+invoiceRouter.get('/invoices/count', invoiceController.getInvoiceCount);
+invoiceRouter.get('/invoices/total', invoiceController.getTotalAmount);
+invoiceRouter.get(
+  '/invoices/overdue-total',
+  invoiceController.getTotalAmountUnpaid,
+);

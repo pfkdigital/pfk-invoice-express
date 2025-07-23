@@ -1,17 +1,22 @@
 export interface CreateInvoiceDto {
   invoiceReference: string;
+  description: string;
   status: InvoiceStatus;
   invoiceDate: string;
   dueDate: string;
-  userId: string;
+  amount?: number;
+  clientId: string;
   items: InvoiceItemDto[];
 }
 
 export interface UpdateInvoiceDto {
   invoiceReference?: string;
+  description: string;
   status?: InvoiceStatus;
   invoiceDate?: string;
   dueDate?: string;
+  amount?: number;
+  clientId?: string;
   items?: InvoiceItemDto[];
 }
 
@@ -23,8 +28,8 @@ export interface InvoiceItemDto {
   unitPrice: number;
 }
 
-enum InvoiceStatus {
-  PENDING = "PENDING",
-  PAID = "PAID",
-  OVERDUE = "OVERDUE",
+export enum InvoiceStatus {
+  PENDING = 'PENDING',
+  PAID = 'PAID',
+  OVERDUE = 'OVERDUE',
 }

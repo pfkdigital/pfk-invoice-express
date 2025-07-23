@@ -1,4 +1,5 @@
 import { AppError } from '../errors/AppError';
+import { ClientNotFoundError } from '../errors/ClientNotFoundError';
 import { PrismaError } from '../errors/PrismaError';
 import { ValidationError } from '../errors/ValidationError';
 
@@ -9,7 +10,6 @@ export const errorHandlerMiddleWare = (
   next: any,
 ) => {
   if (err instanceof AppError) {
-    // Handle operational errors
     return res.status(err.statusCode).json({
       status: 'error',
       statusCode: err.statusCode,
@@ -26,7 +26,6 @@ export const errorHandlerMiddleWare = (
   }
 
   if (err instanceof PrismaError) {
-    console.log('true');
     return res.status(err.statusCode).json({
       prismaErrorCode: err.errorCode,
       statusCode: err.statusCode,

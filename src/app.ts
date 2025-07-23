@@ -2,9 +2,8 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import { invoiceRouter } from './modules/invoice/invoice.routes';
-import { clientsRouter } from './modules/user/user.routes';
+import { clientsRouter } from './modules/client/client.routes';
 import { errorHandlerMiddleWare } from './middleware/error.middleware';
-import { prismaErrorHandler } from './handlers/prismaHandler';
 
 dotenv.config();
 

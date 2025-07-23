@@ -26,7 +26,8 @@ CREATE TABLE "Address" (
 -- CreateTable
 CREATE TABLE "Invoice" (
     "id" TEXT NOT NULL,
-    "invoiceNumber" TEXT NOT NULL,
+    "invoiceReference" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
     "status" "InvoiceStatus" NOT NULL,
     "invoiceDate" TIMESTAMP(3) NOT NULL,
     "dueDate" TIMESTAMP(3) NOT NULL,
@@ -58,7 +59,7 @@ CREATE UNIQUE INDEX "Client_clientEmail_key" ON "Client"("clientEmail");
 CREATE UNIQUE INDEX "Client_clientPhone_key" ON "Client"("clientPhone");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Invoice_invoiceNumber_key" ON "Invoice"("invoiceNumber");
+CREATE UNIQUE INDEX "Invoice_invoiceReference_key" ON "Invoice"("invoiceReference");
 
 -- AddForeignKey
 ALTER TABLE "Address" ADD CONSTRAINT "Address_clientId_fkey" FOREIGN KEY ("clientId") REFERENCES "Client"("id") ON DELETE CASCADE ON UPDATE CASCADE;
