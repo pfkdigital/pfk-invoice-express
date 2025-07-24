@@ -1,158 +1,297 @@
-import {
-  createInvoice,
-  getAllInvoices,
-  getInvoiceById,
-  updateInvoice,
-  deleteInvoice,
-  getInvoiceCount,
-  getTotalAmount,
-  getTotalAmountUnpaid,
-} from '../../../modules/invoice/invoice.service';
+import * as invoiceService from '../../../modules/invoice/invoice.service';
 import * as invoiceRepository from '../../../modules/invoice/invoice.repository';
 import { AppError } from '../../../errors/AppError';
 import { HttpStatus } from '../../../enums/http-status.enum';
-import { mockCreateInvoiceDto } from '../../mocks/invoice.mock';
+import { errorHandler } from '../../../handlers/errorHandler';
+import {
+  mockCreateInvoiceDto,
+  mockUpdateInvoiceDto,
+  mockInvoice,
+  mockInvoices,
+  mockUpdatedInvoice,
+} from '../../mocks/invoice.mock';
 
 jest.mock('../../../modules/invoice/invoice.repository');
+jest.mock('../../../handlers/errorHandler');
+
+const mockInvoiceRepository = invoiceRepository as jest.Mocked<typeof invoiceRepository>;
 jest.mock('../../../handlers/errorHandler', () => ({
   errorHandler: jest.fn(),
 }));
+const mockErrorHandler = errorHandler as jest.MockedFunction<typeof errorHandler>;
 
 describe('Invoice Service', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('createInvoice', () => {
     it('should create an invoice successfully', async () => {
-      const mockData = { id: '1', amount: 100 };
-      (invoiceRepository.createInvoice as jest.Mock).mockResolvedValue(
-        mockData,
-      );
+      (mockInvoiceRepository.createInvoice as jest.Mock).mockResolvedValue(mockInvoice);
 
-      const result = await createInvoice(mockCreateInvoiceDto);
-      expect(result).toEqual(mockData);
-      expect(invoiceRepository.createInvoice).toHaveBeenCalledWith(mockData);
+      const result = await invoiceService.createInvoice(mockCreateInvoiceDto);
+
+      expect(mockInvoiceRepository.createInvoice).toHaveBeenCalledWith(mockCreateInvoiceDto);
+      expect(result).toEqual(mockInvoice);
     });
 
-    it('should handle errors during invoice creation', async () => {
-      const mockError = new Error('Database error');
-      (invoiceRepository.createInvoice as jest.Mock).mockRejectedValue(
-        mockError,
-      );
+    it('should handle error during invoice creation', async () => {
+      const error = new Error('Database error');
+      (mockInvoiceRepository.createInvoice as jest.Mock).mockRejectedValue(error);
 
-      await expect(createInvoice(mockCreateInvoiceDto)).rejects.toThrow(
-        mockError,
-      );
+      await invoiceService.createInvoice(mockCreateInvoiceDto);
+
+      expect(mockErrorHandler).toHaveBeenCalledWith(error);
+    });
+
+    it('should handle Prisma errors during invoice creation', async () => {
+      const prismaError = new Error('Unique constraint violation');
+      (mockInvoiceRepository.createInvoice as jest.Mock).mockRejectedValue(prismaError);
+
+      await invoiceService.createInvoice(mockCreateInvoiceDto);
+
+      expect(mockErrorHandler).toHaveBeenCalledWith(prismaError);
     });
   });
 
   describe('getAllInvoices', () => {
-    it('should retrieve all invoices', async () => {
-      const mockInvoices = [{ id: '1', amount: 100 }];
-      (invoiceRepository.getAllInvoices as jest.Mock).mockResolvedValue(
-        mockInvoices,
-      );
+    it('should return all invoices successfully', async () => {
+      (mockInvoiceRepository.getAllInvoices as jest.Mock).mockResolvedValue(mockInvoices);
 
-      const result = await getAllInvoices();
+      const result = await invoiceService.getAllInvoices();
+
+      expect(mockInvoiceRepository.getAllInvoices).toHaveBeenCalled();
       expect(result).toEqual(mockInvoices);
-      expect(invoiceRepository.getAllInvoices).toHaveBeenCalled();
+    });
+
+    it('should return empty array when no invoices exist', async () => {
+      (mockInvoiceRepository.getAllInvoices as jest.Mock).mockResolvedValue([]);
+
+      const result = await invoiceService.getAllInvoices();
+
+      expect(result).toEqual([]);
+    });
+
+    it('should handle error during fetching all invoices', async () => {
+      const error = new Error('Database connection failed');
+      (mockInvoiceRepository.getAllInvoices as jest.Mock).mockRejectedValue(error);
+
+      await invoiceService.getAllInvoices();
+
+      expect(mockErrorHandler).toHaveBeenCalledWith(error);
     });
   });
 
   describe('getInvoiceById', () => {
-    it('should retrieve an invoice by ID', async () => {
-      const mockInvoice = { id: '1', amount: 100 };
-      (invoiceRepository.getInvoiceById as jest.Mock).mockResolvedValue(
-        mockInvoice,
-      );
+    it('should return invoice when found', async () => {
+      (mockInvoiceRepository.getInvoiceById as jest.Mock).mockResolvedValue(mockInvoice);
 
-      const result = await getInvoiceById('1');
+      const result = await invoiceService.getInvoiceById('invoice-123');
+
+      expect(mockInvoiceRepository.getInvoiceById).toHaveBeenCalledWith('invoice-123');
       expect(result).toEqual(mockInvoice);
-      expect(invoiceRepository.getInvoiceById).toHaveBeenCalledWith('1');
     });
 
-    it('should throw an error if invoice is not found', async () => {
-      (invoiceRepository.getInvoiceById as jest.Mock).mockResolvedValue(null);
+    it('should throw AppError when invoice not found', async () => {
+      (mockInvoiceRepository.getInvoiceById as jest.Mock).mockResolvedValue(null);
 
-      await expect(getInvoiceById('1')).rejects.toThrow(AppError);
+      await invoiceService.getInvoiceById('non-existent-id');
+
+      expect(mockErrorHandler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Invoice not found',
+          statusCode: HttpStatus.NOT_FOUND,
+        })
+      );
+    });
+
+    it('should handle database error during fetch', async () => {
+      const error = new Error('Database connection failed');
+      (mockInvoiceRepository.getInvoiceById as jest.Mock).mockRejectedValue(error);
+
+      await invoiceService.getInvoiceById('invoice-123');
+
+      expect(mockErrorHandler).toHaveBeenCalledWith(error);
     });
   });
 
   describe('updateInvoice', () => {
-    it('should update an invoice successfully', async () => {
-      const mockInvoice = { id: '1', amount: 100, description: 'Test invoice' };
-      const mockData = { amount: 200, description: 'Updated invoice' };
-      (invoiceRepository.getInvoiceById as jest.Mock).mockResolvedValue(
-        mockInvoice,
-      );
-      (invoiceRepository.updateInvoice as jest.Mock).mockResolvedValue({
-        ...mockInvoice,
-        ...mockData,
-      });
+    it('should update invoice successfully when invoice exists', async () => {
+      (mockInvoiceRepository.getInvoiceById as jest.Mock).mockResolvedValue(mockInvoice);
+      (mockInvoiceRepository.updateInvoice as jest.Mock).mockResolvedValue(mockUpdatedInvoice);
 
-      const result = await updateInvoice('1', mockData);
-      expect(result).toEqual({ ...mockInvoice, ...mockData });
-      expect(invoiceRepository.updateInvoice).toHaveBeenCalledWith(
-        '1',
-        mockData,
+      const result = await invoiceService.updateInvoice('invoice-123', mockUpdateInvoiceDto);
+
+      expect(mockInvoiceRepository.getInvoiceById).toHaveBeenCalledWith('invoice-123');
+      expect(mockInvoiceRepository.updateInvoice).toHaveBeenCalledWith('invoice-123', mockUpdateInvoiceDto);
+      expect(result).toEqual(mockUpdatedInvoice);
+    });
+
+    it('should throw AppError when invoice not found for update', async () => {
+      (mockInvoiceRepository.getInvoiceById as jest.Mock).mockResolvedValue(null);
+
+      await invoiceService.updateInvoice('non-existent-id', mockUpdateInvoiceDto);
+
+      expect(mockInvoiceRepository.getInvoiceById).toHaveBeenCalledWith('non-existent-id');
+      expect(mockInvoiceRepository.updateInvoice).not.toHaveBeenCalled();
+      expect(mockErrorHandler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Invoice not found',
+          statusCode: HttpStatus.NOT_FOUND,
+        })
       );
     });
 
-    it('should throw an error if invoice is not found', async () => {
-      (invoiceRepository.getInvoiceById as jest.Mock).mockResolvedValue(null);
+    it('should handle error during invoice update', async () => {
+      (mockInvoiceRepository.getInvoiceById as jest.Mock).mockResolvedValue(mockInvoice);
+      const error = new Error('Update failed');
+      (mockInvoiceRepository.updateInvoice as jest.Mock).mockRejectedValue(error);
 
-      await expect(
-        updateInvoice('1', { amount: 200, description: 'Updated invoice' }),
-      ).rejects.toThrow(AppError);
+      await invoiceService.updateInvoice('invoice-123', mockUpdateInvoiceDto);
+
+      expect(mockErrorHandler).toHaveBeenCalledWith(error);
+    });
+
+    it('should handle error during existence check for update', async () => {
+      const error = new Error('Database connection failed');
+      (mockInvoiceRepository.getInvoiceById as jest.Mock).mockRejectedValue(error);
+
+      await invoiceService.updateInvoice('invoice-123', mockUpdateInvoiceDto);
+
+      expect(mockErrorHandler).toHaveBeenCalledWith(error);
+      expect(mockInvoiceRepository.updateInvoice).not.toHaveBeenCalled();
     });
   });
 
   describe('deleteInvoice', () => {
-    it('should delete an invoice successfully', async () => {
-      const mockInvoice = { id: '1', amount: 100 };
-      (invoiceRepository.getInvoiceById as jest.Mock).mockResolvedValue(
-        mockInvoice,
-      );
-      (invoiceRepository.deleteInvoice as jest.Mock).mockResolvedValue(true);
+    it('should delete invoice successfully when invoice exists', async () => {
+      (mockInvoiceRepository.getInvoiceById as jest.Mock).mockResolvedValue(mockInvoice);
+      (mockInvoiceRepository.deleteInvoice as jest.Mock).mockResolvedValue(mockInvoice);
 
-      const result = await deleteInvoice('1');
-      expect(result).toBe(true);
-      expect(invoiceRepository.deleteInvoice).toHaveBeenCalledWith('1');
+      const result = await invoiceService.deleteInvoice('invoice-123');
+
+      expect(mockInvoiceRepository.getInvoiceById).toHaveBeenCalledWith('invoice-123');
+      expect(mockInvoiceRepository.deleteInvoice).toHaveBeenCalledWith('invoice-123');
+      expect(result).toEqual(mockInvoice);
     });
 
-    it('should throw an error if invoice is not found', async () => {
-      (invoiceRepository.getInvoiceById as jest.Mock).mockResolvedValue(null);
+    it('should throw AppError when invoice not found for deletion', async () => {
+      (mockInvoiceRepository.getInvoiceById as jest.Mock).mockResolvedValue(null);
 
-      await expect(deleteInvoice('1')).rejects.toThrow(AppError);
+      await invoiceService.deleteInvoice('non-existent-id');
+
+      expect(mockInvoiceRepository.getInvoiceById).toHaveBeenCalledWith('non-existent-id');
+      expect(mockInvoiceRepository.deleteInvoice).not.toHaveBeenCalled();
+      expect(mockErrorHandler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Invoice not found',
+          statusCode: HttpStatus.NOT_FOUND,
+        })
+      );
+    });
+
+    it('should handle error during invoice deletion', async () => {
+      (mockInvoiceRepository.getInvoiceById as jest.Mock).mockResolvedValue(mockInvoice);
+      const error = new Error('Delete failed');
+      (mockInvoiceRepository.deleteInvoice as jest.Mock).mockRejectedValue(error);
+
+      await invoiceService.deleteInvoice('invoice-123');
+
+      expect(mockErrorHandler).toHaveBeenCalledWith(error);
+    });
+
+    it('should handle error during existence check for deletion', async () => {
+      const error = new Error('Database connection failed');
+      (mockInvoiceRepository.getInvoiceById as jest.Mock).mockRejectedValue(error);
+
+      await invoiceService.deleteInvoice('invoice-123');
+
+      expect(mockErrorHandler).toHaveBeenCalledWith(error);
+      expect(mockInvoiceRepository.deleteInvoice).not.toHaveBeenCalled();
     });
   });
 
   describe('getInvoiceCount', () => {
-    it('should return the count of invoices', async () => {
-      (invoiceRepository.countInvoices as jest.Mock).mockResolvedValue(5);
+    it('should return invoice count successfully', async () => {
+      (mockInvoiceRepository.countInvoices as jest.Mock).mockResolvedValue(5);
 
-      const result = await getInvoiceCount();
+      const result = await invoiceService.getInvoiceCount();
+
+      expect(mockInvoiceRepository.countInvoices).toHaveBeenCalled();
       expect(result).toBe(5);
-      expect(invoiceRepository.countInvoices).toHaveBeenCalled();
+    });
+
+    it('should return zero when no invoices exist', async () => {
+      (mockInvoiceRepository.countInvoices as jest.Mock).mockResolvedValue(0);
+
+      const result = await invoiceService.getInvoiceCount();
+
+      expect(result).toBe(0);
+    });
+
+    it('should handle error during count operation', async () => {
+      const error = new Error('Count operation failed');
+      (mockInvoiceRepository.countInvoices as jest.Mock).mockRejectedValue(error);
+
+      await invoiceService.getInvoiceCount();
+
+      expect(mockErrorHandler).toHaveBeenCalledWith(error);
     });
   });
 
   describe('getTotalAmount', () => {
-    it('should return the total amount of invoices', async () => {
-      (invoiceRepository.getTotalAmount as jest.Mock).mockResolvedValue(1000);
+    it('should return total amount successfully', async () => {
+      (mockInvoiceRepository.getTotalAmount as jest.Mock).mockResolvedValue(15000.75);
 
-      const result = await getTotalAmount();
-      expect(result).toBe(1000);
-      expect(invoiceRepository.getTotalAmount).toHaveBeenCalled();
+      const result = await invoiceService.getTotalAmount();
+
+      expect(mockInvoiceRepository.getTotalAmount).toHaveBeenCalled();
+      expect(result).toBe(15000.75);
+    });
+
+    it('should return zero when no invoices exist', async () => {
+      (mockInvoiceRepository.getTotalAmount as jest.Mock).mockResolvedValue(0);
+
+      const result = await invoiceService.getTotalAmount();
+
+      expect(result).toBe(0);
+    });
+
+    it('should handle error during total amount calculation', async () => {
+      const error = new Error('Total amount calculation failed');
+      (mockInvoiceRepository.getTotalAmount as jest.Mock).mockRejectedValue(error);
+
+      await invoiceService.getTotalAmount();
+
+      expect(mockErrorHandler).toHaveBeenCalledWith(error);
     });
   });
 
   describe('getTotalAmountUnpaid', () => {
-    it('should return the total unpaid amount of invoices', async () => {
-      (invoiceRepository.getTotalAmountUnpaid as jest.Mock).mockResolvedValue(
-        500,
-      );
+    it('should return total unpaid amount successfully', async () => {
+      (mockInvoiceRepository.getTotalAmountUnpaid as jest.Mock).mockResolvedValue(7500.25);
 
-      const result = await getTotalAmountUnpaid();
-      expect(result).toBe(500);
-      expect(invoiceRepository.getTotalAmountUnpaid).toHaveBeenCalled();
+      const result = await invoiceService.getTotalAmountUnpaid();
+
+      expect(mockInvoiceRepository.getTotalAmountUnpaid).toHaveBeenCalled();
+      expect(result).toBe(7500.25);
+    });
+
+    it('should return zero when no unpaid invoices exist', async () => {
+      (mockInvoiceRepository.getTotalAmountUnpaid as jest.Mock).mockResolvedValue(0);
+
+      const result = await invoiceService.getTotalAmountUnpaid();
+
+      expect(result).toBe(0);
+    });
+
+    it('should handle error during unpaid amount calculation', async () => {
+      const error = new Error('Unpaid amount calculation failed');
+      (mockInvoiceRepository.getTotalAmountUnpaid as jest.Mock).mockRejectedValue(error);
+
+      await invoiceService.getTotalAmountUnpaid();
+
+      expect(mockErrorHandler).toHaveBeenCalledWith(error);
     });
   });
 });

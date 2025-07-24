@@ -12,13 +12,13 @@ export const createInvoice = async (data: CreateInvoiceDto) => {
         status: data.status,
         invoiceDate: new Date(data.invoiceDate),
         dueDate: new Date(data.dueDate),
-        totalAmount: data.items.reduce(
+        totalAmount: data.invoiceItems.reduce(
           (sum, item) => sum + item.quantity * item.unitPrice,
           0,
         ),
         clientId: data.clientId,
         invoiceItems: {
-          create: data.items.map((item) => ({
+          create: data.invoiceItems.map((item) => ({
             name: item.name,
             description: item.description,
             quantity: item.quantity,
@@ -68,14 +68,14 @@ export const updateInvoice = async (id: string, data: UpdateInvoiceDto) => {
         status: data.status,
         invoiceDate: data.invoiceDate ? new Date(data.invoiceDate) : undefined,
         dueDate: data.dueDate ? new Date(data.dueDate) : undefined,
-        totalAmount: data.items?.reduce(
+        totalAmount: data.invoiceItems?.reduce(
           (sum, item) => sum + item.quantity * item.unitPrice,
           0,
         ),
         invoiceItems: {
           deleteMany: {},
           create:
-            data.items?.map((item) => ({
+            data.invoiceItems?.map((item) => ({
               name: item.name,
               description: item.description,
               quantity: item.quantity,

@@ -4,9 +4,9 @@ export interface CreateInvoiceDto {
   status: InvoiceStatus;
   invoiceDate: string;
   dueDate: string;
-  amount?: number;
+  totalAmount?: number;
   clientId: string;
-  items: InvoiceItemDto[];
+  invoiceItems: InvoiceItemDto[];
 }
 
 export interface UpdateInvoiceDto {
@@ -15,9 +15,8 @@ export interface UpdateInvoiceDto {
   status?: InvoiceStatus;
   invoiceDate?: string;
   dueDate?: string;
-  amount?: number;
-  clientId?: string;
-  items?: InvoiceItemDto[];
+  totalAmount?: number;
+  invoiceItems?: InvoiceItemDto[];
 }
 
 export interface InvoiceItemDto {

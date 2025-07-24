@@ -10,9 +10,9 @@ export const mockCreateInvoiceDto: CreateInvoiceDto = {
   status: InvoiceStatus.PENDING,
   invoiceDate: '2024-01-15',
   dueDate: '2024-02-15',
-  amount: 1500.5,
+  totalAmount: 1500.5,
   clientId: 'user-123',
-  items: [
+  invoiceItems: [
     {
       name: 'Website Design',
       description: 'Designing the homepage and landing pages',
@@ -34,9 +34,8 @@ export const mockUpdateInvoiceDto: UpdateInvoiceDto = {
   status: InvoiceStatus.PAID,
   invoiceDate: '2024-01-15',
   dueDate: '2024-02-25',
-  amount: 1750.75,
-  clientId: 'user-123',
-  items: [
+  totalAmount: 1750.75,
+  invoiceItems: [
     {
       id: 'item-123',
       name: 'Website Design (Updated)',
@@ -61,11 +60,11 @@ export const mockInvoice = {
   status: InvoiceStatus.PENDING,
   invoiceDate: new Date('2024-01-15'),
   dueDate: new Date('2024-02-15'),
-  amount: 1500.5,
+  totalAmount: 1500.5,
   clientId: 'user-123',
   createdAt: new Date('2024-01-15T10:00:00Z'),
   updatedAt: new Date('2024-01-15T10:00:00Z'),
-  items: [
+  invoiceItems: [
     {
       id: 'item-123',
       name: 'Website Design',
@@ -110,11 +109,11 @@ export const mockInvoices = [
     status: InvoiceStatus.PENDING,
     invoiceDate: new Date('2024-02-01'),
     dueDate: new Date('2024-02-28'),
-    amount: 750.0,
+    totalAmount: 750.0,
     clientId: 'user-123',
     createdAt: new Date('2024-02-01T09:00:00Z'),
     updatedAt: new Date('2024-02-01T09:00:00Z'),
-    items: [
+    invoiceItems: [
       {
         id: 'item-789',
         name: 'Technical Consulting',
@@ -148,11 +147,11 @@ export const mockInvoices = [
     status: InvoiceStatus.PAID,
     invoiceDate: new Date('2024-03-01'),
     dueDate: new Date('2024-03-30'),
-    amount: 2250.0,
+    totalAmount: 2250.0,
     clientId: 'user-456',
     createdAt: new Date('2024-03-01T11:00:00Z'),
     updatedAt: new Date('2024-03-15T16:45:00Z'),
-    items: [
+    invoiceItems: [
       {
         id: 'item-101',
         name: 'Mobile App Design',
@@ -189,7 +188,6 @@ export const mockInvoices = [
   },
 ];
 
-// Additional mock variations for testing
 export const mockInvoiceWithoutClient = {
   id: 'invoice-123',
   invoiceReference: 'INV-2024-001',
@@ -197,11 +195,11 @@ export const mockInvoiceWithoutClient = {
   status: InvoiceStatus.PENDING,
   invoiceDate: new Date('2024-01-15'),
   dueDate: new Date('2024-02-15'),
-  amount: 1500.5,
+  totalAmount: 1500.5,
   clientId: 'user-123',
   createdAt: new Date('2024-01-15T10:00:00Z'),
   updatedAt: new Date('2024-01-15T10:00:00Z'),
-  items: [
+  invoiceItems: [
     {
       id: 'item-123',
       name: 'Website Design',
@@ -220,11 +218,11 @@ export const mockUpdatedInvoice = {
   status: InvoiceStatus.PAID,
   invoiceDate: new Date('2024-01-15'),
   dueDate: new Date('2024-02-25'),
-  amount: 1750.75,
+  totalAmount: 1750.75,
   clientId: 'user-123',
   createdAt: new Date('2024-01-15T10:00:00Z'),
   updatedAt: new Date('2024-01-16T14:30:00Z'),
-  items: [
+  invoiceItems: [
     {
       id: 'item-123',
       name: 'Website Design (Updated)',
@@ -260,10 +258,8 @@ export const mockUpdatedInvoice = {
   },
 };
 
-// Mock empty arrays for edge cases
 export const mockEmptyInvoices: any[] = [];
 
-// Mock filtered data
 export const mockPendingInvoices = mockInvoices.filter(
   (invoice) => invoice.status === InvoiceStatus.PENDING,
 );
@@ -274,12 +270,10 @@ export const mockInvoicesByClient = mockInvoices.filter(
   (invoice) => invoice.clientId === 'user-123',
 );
 
-// Mock error scenarios
 export const mockInvalidClientId = 'non-existent-client';
 export const mockInvalidInvoiceId = 'non-existent-invoice';
-export const mockDuplicateInvoiceReference = 'INV-2024-001'; // Already exists in mockInvoice
+export const mockDuplicateInvoiceReference = 'INV-2024-001';
 
-// Mock Prisma error objects for testing
 export const mockPrismaErrors = {
   duplicateInvoiceReference: {
     code: 'P2002',

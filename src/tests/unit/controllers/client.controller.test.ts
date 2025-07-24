@@ -1,16 +1,19 @@
 import * as clientController from '../../../modules/client/client.controller';
 import * as clientService from '../../../modules/client/client.service';
 import { Request, Response, NextFunction } from 'express';
-import { mockCreateClientDto, mockUpdateClientDto, mockClient, mockClients } from '../../mocks/client.mock';
+import {
+  mockCreateClientDto,
+  mockUpdateClientDto,
+  mockClient,
+  mockClients,
+} from '../../mocks/client.mock';
 import { HttpStatus } from '../../../enums/http-status.enum';
 import { ClientNotFoundError } from '../../../errors/ClientNotFoundError';
 import { AppError } from '../../../errors/AppError';
 
-// Mock the service module
 jest.mock('../../../modules/client/client.service');
 const mockClientService = clientService as jest.Mocked<typeof clientService>;
 
-// Mock Express objects
 const mockRequest = () => {
   const req = {} as Request;
   req.body = {};
@@ -47,7 +50,9 @@ describe('Client Controller', () => {
 
       await clientController.createClient(req, res, next);
 
-      expect(mockClientService.createClient).toHaveBeenCalledWith(mockCreateClientDto);
+      expect(mockClientService.createClient).toHaveBeenCalledWith(
+        mockCreateClientDto,
+      );
       expect(res.status).toHaveBeenCalledWith(HttpStatus.CREATED);
       expect(res.json).toHaveBeenCalledWith(mockClient);
       expect(next).not.toHaveBeenCalled();
@@ -55,12 +60,17 @@ describe('Client Controller', () => {
 
     it('should call next with error when service throws an error', async () => {
       req.body = mockCreateClientDto;
-      const serviceError = new AppError('Failed to create client', HttpStatus.INTERNAL_SERVER_ERROR);
+      const serviceError = new AppError(
+        'Failed to create client',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
       mockClientService.createClient.mockRejectedValue(serviceError);
 
       await clientController.createClient(req, res, next);
 
-      expect(mockClientService.createClient).toHaveBeenCalledWith(mockCreateClientDto);
+      expect(mockClientService.createClient).toHaveBeenCalledWith(
+        mockCreateClientDto,
+      );
       expect(res.status).not.toHaveBeenCalled();
       expect(res.json).not.toHaveBeenCalled();
       expect(next).toHaveBeenCalledWith(serviceError);
@@ -68,7 +78,10 @@ describe('Client Controller', () => {
 
     it('should handle validation errors from service', async () => {
       req.body = { invalidData: 'invalid' };
-      const validationError = new AppError('Validation failed', HttpStatus.BAD_REQUEST);
+      const validationError = new AppError(
+        'Validation failed',
+        HttpStatus.BAD_REQUEST,
+      );
       mockClientService.createClient.mockRejectedValue(validationError);
 
       await clientController.createClient(req, res, next);
@@ -101,7 +114,10 @@ describe('Client Controller', () => {
     });
 
     it('should call next with error when service throws an error', async () => {
-      const serviceError = new AppError('Database connection failed', HttpStatus.INTERNAL_SERVER_ERROR);
+      const serviceError = new AppError(
+        'Database connection failed',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
       mockClientService.getAllClients.mockRejectedValue(serviceError);
 
       await clientController.getAllClients(req, res, next);
@@ -120,7 +136,9 @@ describe('Client Controller', () => {
 
       await clientController.getClientById(req, res, next);
 
-      expect(mockClientService.getClientById).toHaveBeenCalledWith('client-123');
+      expect(mockClientService.getClientById).toHaveBeenCalledWith(
+        'client-123',
+      );
       expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
       expect(res.json).toHaveBeenCalledWith(mockClient);
       expect(next).not.toHaveBeenCalled();
@@ -133,7 +151,9 @@ describe('Client Controller', () => {
 
       await clientController.getClientById(req, res, next);
 
-      expect(mockClientService.getClientById).toHaveBeenCalledWith('non-existent-id');
+      expect(mockClientService.getClientById).toHaveBeenCalledWith(
+        'non-existent-id',
+      );
       expect(res.status).not.toHaveBeenCalled();
       expect(res.json).not.toHaveBeenCalled();
       expect(next).toHaveBeenCalledWith(notFoundError);
@@ -158,7 +178,10 @@ describe('Client Controller', () => {
 
       await clientController.updateClient(req, res, next);
 
-      expect(mockClientService.updateClient).toHaveBeenCalledWith('client-123', mockUpdateClientDto);
+      expect(mockClientService.updateClient).toHaveBeenCalledWith(
+        'client-123',
+        mockUpdateClientDto,
+      );
       expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
       expect(res.json).toHaveBeenCalledWith(updatedClient);
       expect(next).not.toHaveBeenCalled();
@@ -172,7 +195,10 @@ describe('Client Controller', () => {
 
       await clientController.updateClient(req, res, next);
 
-      expect(mockClientService.updateClient).toHaveBeenCalledWith('non-existent-id', mockUpdateClientDto);
+      expect(mockClientService.updateClient).toHaveBeenCalledWith(
+        'non-existent-id',
+        mockUpdateClientDto,
+      );
       expect(res.status).not.toHaveBeenCalled();
       expect(res.json).not.toHaveBeenCalled();
       expect(next).toHaveBeenCalledWith(notFoundError);
@@ -181,7 +207,10 @@ describe('Client Controller', () => {
     it('should handle validation errors for update data', async () => {
       req.params = { id: 'client-123' };
       req.body = { invalidField: 'invalid' };
-      const validationError = new AppError('Validation failed', HttpStatus.BAD_REQUEST);
+      const validationError = new AppError(
+        'Validation failed',
+        HttpStatus.BAD_REQUEST,
+      );
       mockClientService.updateClient.mockRejectedValue(validationError);
 
       await clientController.updateClient(req, res, next);
@@ -196,7 +225,10 @@ describe('Client Controller', () => {
 
       await clientController.updateClient(req, res, next);
 
-      expect(mockClientService.updateClient).toHaveBeenCalledWith('client-123', {});
+      expect(mockClientService.updateClient).toHaveBeenCalledWith(
+        'client-123',
+        {},
+      );
       expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
       expect(res.json).toHaveBeenCalledWith(mockClient);
     });
@@ -222,7 +254,9 @@ describe('Client Controller', () => {
 
       await clientController.deleteClient(req, res, next);
 
-      expect(mockClientService.deleteClient).toHaveBeenCalledWith('non-existent-id');
+      expect(mockClientService.deleteClient).toHaveBeenCalledWith(
+        'non-existent-id',
+      );
       expect(res.status).not.toHaveBeenCalled();
       expect(res.send).not.toHaveBeenCalled();
       expect(next).toHaveBeenCalledWith(notFoundError);
@@ -230,7 +264,10 @@ describe('Client Controller', () => {
 
     it('should handle foreign key constraint errors', async () => {
       req.params = { id: 'client-123' };
-      const constraintError = new AppError('Cannot delete client with active invoices', HttpStatus.CONFLICT);
+      const constraintError = new AppError(
+        'Cannot delete client with active invoices',
+        HttpStatus.CONFLICT,
+      );
       mockClientService.deleteClient.mockRejectedValue(constraintError);
 
       await clientController.deleteClient(req, res, next);
@@ -240,7 +277,7 @@ describe('Client Controller', () => {
     });
 
     it('should handle missing id parameter', async () => {
-      req.params = {}; 
+      req.params = {};
       mockClientService.deleteClient.mockResolvedValue(mockClient);
 
       await clientController.deleteClient(req, res, next);
