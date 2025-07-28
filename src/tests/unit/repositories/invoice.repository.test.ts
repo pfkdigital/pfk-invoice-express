@@ -1,34 +1,72 @@
-import prisma from '../../../config/prisma';
 import * as invoiceRepository from '../../../modules/invoice/invoice.repository';
+import prisma from '../../../config/prisma';
 import {
-  mockCreateInvoiceDto,
-  mockUpdateInvoiceDto,
-  mockInvoice,
-  mockInvoices,
-  mockInvoiceWithoutClient,
-  mockUpdatedInvoice,
-  mockEmptyInvoices,
-  mockPrismaErrors,
-} from '../../mocks/invoice.mock';
-import { InvoiceStatus } from '../../../types/invoice.types';
-import { mock } from 'node:test';
+  CreateInvoiceDto,
+  UpdateInvoiceDto,
+  InvoiceStatus,
+} from '../../../types/invoice.types';
 
 jest.mock('../../../config/prisma', () => ({
-  __esModule: true,
-  default: {
-    invoice: {
-      create: jest.fn(),
-      findMany: jest.fn(),
-      findUnique: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
-      count: jest.fn(),
-      aggregate: jest.fn(),
-    },
+  invoice: {
+    create: jest.fn(),
+    findMany: jest.fn(),
+    findUnique: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
   },
 }));
 
 const mockPrisma = prisma as jest.Mocked<typeof prisma>;
+
+const mockCreateInvoiceDto: CreateInvoiceDto = {
+  invoiceReference: 'INV-001',
+  description: 'Test invoice',
+  status: InvoiceStatus.PENDING,
+  invoiceDate: '2024-01-15',
+  dueDate: '2024-02-15',
+  clientId: 'client-123',
+  invoiceItems: [
+    {
+      name: 'Item 1',
+      description: 'Test item 1',
+      quantity: 2,
+      unitPrice: 100,
+    },
+    {
+      name: 'Item 2',
+      description: 'Test item 2',
+      quantity: 1,
+      unitPrice: 50,
+    },
+  ],
+};
+
+const mockUpdateInvoiceDto: UpdateInvoiceDto = {
+  invoiceReference: 'INV-001-UPDATED',
+  description: 'Updated invoice',
+  status: InvoiceStatus.PAID,
+  invoiceItems: [
+    {
+      name: 'Updated Item',
+      description: 'Updated test item',
+      quantity: 3,
+      unitPrice: 75,
+    },
+  ],
+};
+
+const mockInvoice = {
+  id: 'invoice-123',
+  invoiceReference: 'INV-001',
+  description: 'Test invoice',
+  status: InvoiceStatus.PENDING,
+  invoiceDate: new Date('2024-01-15'),
+  dueDate: new Date('2024-02-15'),
+  totalAmount: 250,
+  clientId: 'client-123',
+  createdAt: new Date(),
+  updatedAt: new Date(),
+};
 
 describe('Invoice Repository', () => {
   beforeEach(() => {
@@ -36,7 +74,7 @@ describe('Invoice Repository', () => {
   });
 
   describe('createInvoice', () => {
-    it('should create an invoice successfully', async () => {
+    it('should create invoice with correct data and calculated total', async () => {
       (mockPrisma.invoice.create as jest.Mock).mockResolvedValue(mockInvoice);
 
       const result =
@@ -44,87 +82,67 @@ describe('Invoice Repository', () => {
 
       expect(mockPrisma.invoice.create).toHaveBeenCalledWith({
         data: {
-          invoiceReference: mockCreateInvoiceDto.invoiceReference,
-          description: mockCreateInvoiceDto.description,
-          status: mockCreateInvoiceDto.status,
-          invoiceDate: new Date(mockCreateInvoiceDto.invoiceDate),
-          dueDate: new Date(mockCreateInvoiceDto.dueDate),
-          clientId: mockCreateInvoiceDto.clientId,
-          totalAmount: mockCreateInvoiceDto.totalAmount,
+          invoiceReference: 'INV-001',
+          description: 'Test invoice',
+          status: InvoiceStatus.PENDING,
+          invoiceDate: new Date('2024-01-15'),
+          dueDate: new Date('2024-02-15'),
+          totalAmount: 250, // (2 * 100) + (1 * 50)
+          clientId: 'client-123',
           invoiceItems: {
-            create: mockCreateInvoiceDto.invoiceItems.map((item) => ({
-              name: item.name,
-              description: item.description,
-              quantity: item.quantity,
-              unitPrice: item.unitPrice,
-            })),
+            create: [
+              {
+                name: 'Item 1',
+                description: 'Test item 1',
+                quantity: 2,
+                unitPrice: 100,
+              },
+              {
+                name: 'Item 2',
+                description: 'Test item 2',
+                quantity: 1,
+                unitPrice: 50,
+              },
+            ],
           },
         },
       });
       expect(result).toEqual(mockInvoice);
     });
 
-    it('should handle Prisma error for duplicate invoice reference', async () => {
-      const prismaError = {
-        ...mockPrismaErrors.duplicateInvoiceReference,
-        name: 'PrismaClientKnownRequestError',
-      };
-      (mockPrisma.invoice.create as jest.Mock).mockRejectedValue(prismaError);
+    it('should handle empty invoice items', async () => {
+      const invoiceWithoutItems = { ...mockCreateInvoiceDto, invoiceItems: [] };
+      (mockPrisma.invoice.create as jest.Mock).mockResolvedValue(mockInvoice);
 
-      await expect(
-        invoiceRepository.createInvoice(mockCreateInvoiceDto),
-      ).rejects.toThrow(prismaError);
-    });
-
-    it('should handle Prisma error for invalid client reference', async () => {
-      const prismaError = {
-        ...mockPrismaErrors.invalidClientReference,
-        name: 'PrismaClientKnownRequestError',
-      };
-      (mockPrisma.invoice.create as jest.Mock).mockRejectedValue(prismaError);
-
-      await expect(
-        invoiceRepository.createInvoice(mockCreateInvoiceDto),
-      ).rejects.toThrow(prismaError);
-    });
-
-    it('should create invoice without invoiceItems', async () => {
-      const invoiceWithoutItems = {
-        ...mockCreateInvoiceDto,
-        invoiceItems: [],
-        totalAmount: 0,
-      };
-      const expectedInvoice = {
-        ...mockInvoice,
-        invoiceItems: [],
-        totalAmount: 0,
-      };
-      (mockPrisma.invoice.create as jest.Mock).mockResolvedValue(
-        expectedInvoice,
-      );
-
-      const result = await invoiceRepository.createInvoice(invoiceWithoutItems);
+      await invoiceRepository.createInvoice(invoiceWithoutItems);
 
       expect(mockPrisma.invoice.create).toHaveBeenCalledWith({
-        data: {
-          invoiceReference: invoiceWithoutItems.invoiceReference,
-          description: invoiceWithoutItems.description,
-          status: invoiceWithoutItems.status,
-          invoiceDate: new Date(invoiceWithoutItems.invoiceDate),
-          dueDate: new Date(invoiceWithoutItems.dueDate),
-          totalAmount: invoiceWithoutItems.totalAmount,
-          clientId: invoiceWithoutItems.clientId,
-          invoiceItems: {
-            create: [],
-          },
-        },
+        data: expect.objectContaining({
+          totalAmount: 0,
+          invoiceItems: { create: [] },
+        }),
       });
-      expect(result).toEqual(expectedInvoice);
+    });
+
+    it('should handle database errors', async () => {
+      (mockPrisma.invoice.create as jest.Mock).mockRejectedValue(
+        new Error('Database error'),
+      );
+
+      await expect(
+        invoiceRepository.createInvoice(mockCreateInvoiceDto),
+      ).rejects.toThrow('Database error');
     });
   });
 
   describe('getAllInvoices', () => {
-    it('should return all invoices successfully', async () => {
+    it('should return all invoices with client information', async () => {
+      const mockInvoices = [
+        {
+          ...mockInvoice,
+          client: { id: 'client-123', clientName: 'Test Client' },
+        },
+      ];
       (mockPrisma.invoice.findMany as jest.Mock).mockResolvedValue(
         mockInvoices,
       );
@@ -132,35 +150,31 @@ describe('Invoice Repository', () => {
       const result = await invoiceRepository.getAllInvoices();
 
       expect(mockPrisma.invoice.findMany).toHaveBeenCalledWith({
-        include: {
-          client: true,
-        },
+        include: { client: true },
       });
       expect(result).toEqual(mockInvoices);
     });
 
     it('should return empty array when no invoices exist', async () => {
-      (mockPrisma.invoice.findMany as jest.Mock).mockResolvedValue(
-        mockEmptyInvoices,
-      );
+      (mockPrisma.invoice.findMany as jest.Mock).mockResolvedValue([]);
 
       const result = await invoiceRepository.getAllInvoices();
 
-      expect(result).toEqual(mockEmptyInvoices);
-    });
-
-    it('should handle database connection error', async () => {
-      const dbError = new Error('Database connection failed');
-      (mockPrisma.invoice.findMany as jest.Mock).mockRejectedValue(dbError);
-
-      await expect(invoiceRepository.getAllInvoices()).rejects.toThrow(dbError);
+      expect(result).toEqual([]);
     });
   });
 
   describe('getInvoiceById', () => {
-    it('should return invoice when found', async () => {
+    it('should return invoice with items and client by id', async () => {
+      const mockInvoiceWithDetails = {
+        ...mockInvoice,
+        invoiceItems: [
+          { id: 'item-1', name: 'Item 1', quantity: 2, unitPrice: 100 },
+        ],
+        client: { id: 'client-123', clientName: 'Test Client' },
+      };
       (mockPrisma.invoice.findUnique as jest.Mock).mockResolvedValue(
-        mockInvoice,
+        mockInvoiceWithDetails,
       );
 
       const result = await invoiceRepository.getInvoiceById('invoice-123');
@@ -168,33 +182,27 @@ describe('Invoice Repository', () => {
       expect(mockPrisma.invoice.findUnique).toHaveBeenCalledWith({
         where: { id: 'invoice-123' },
         include: {
-          client: true,
           invoiceItems: true,
+          client: true,
         },
       });
-      expect(result).toEqual(mockInvoice);
+      expect(result).toEqual(mockInvoiceWithDetails);
     });
 
     it('should return null when invoice not found', async () => {
       (mockPrisma.invoice.findUnique as jest.Mock).mockResolvedValue(null);
 
-      const result = await invoiceRepository.getInvoiceById('non-existent-id');
+      const result = await invoiceRepository.getInvoiceById('non-existent');
 
-      expect(mockPrisma.invoice.findUnique).toHaveBeenCalledWith({
-        where: { id: 'non-existent-id' },
-        include: {
-          client: true,
-          invoiceItems: true,
-        },
-      });
       expect(result).toBeNull();
     });
   });
 
   describe('updateInvoice', () => {
-    it('should update invoice successfully', async () => {
+    it('should update invoice with new data and recalculated total', async () => {
+      const updatedInvoice = { ...mockInvoice, ...mockUpdateInvoiceDto };
       (mockPrisma.invoice.update as jest.Mock).mockResolvedValue(
-        mockUpdatedInvoice,
+        updatedInvoice,
       );
 
       const result = await invoiceRepository.updateInvoice(
@@ -205,39 +213,89 @@ describe('Invoice Repository', () => {
       expect(mockPrisma.invoice.update).toHaveBeenCalledWith({
         where: { id: 'invoice-123' },
         data: {
-          invoiceReference: mockUpdateInvoiceDto.invoiceReference,
-          description: mockUpdateInvoiceDto.description,
-          status: mockUpdateInvoiceDto.status,
-          invoiceDate: new Date(mockUpdateInvoiceDto.invoiceDate ?? Date.now()),
-          dueDate: new Date(mockUpdateInvoiceDto.dueDate ?? Date.now()),
-          totalAmount: mockUpdateInvoiceDto.totalAmount,
+          invoiceReference: 'INV-001-UPDATED',
+          description: 'Updated invoice',
+          status: InvoiceStatus.PAID,
+          invoiceDate: undefined,
+          dueDate: undefined,
+          totalAmount: 225, // 3 * 75
           invoiceItems: {
             deleteMany: {},
-            create: (mockUpdateInvoiceDto.invoiceItems || []).map((item) => ({
-              name: item.name,
-              description: item.description,
-              quantity: item.quantity,
-              unitPrice: item.unitPrice,
-            })),
+            create: [
+              {
+                name: 'Updated Item',
+                description: 'Updated test item',
+                quantity: 3,
+                unitPrice: 75,
+              },
+            ],
           },
         },
       });
-      expect(result).toEqual(mockUpdatedInvoice);
+      expect(result).toEqual(updatedInvoice);
     });
 
-    it('should handle Prisma error when invoice not found', async () => {
-      const prismaError = {
-        ...mockPrismaErrors.invoiceNotFound,
-        name: 'PrismaClientKnownRequestError',
+    it('should handle update with date fields', async () => {
+      const updateWithDates = {
+        ...mockUpdateInvoiceDto,
+        invoiceDate: '2024-02-01',
+        dueDate: '2024-03-01',
       };
-      (mockPrisma.invoice.update as jest.Mock).mockRejectedValue(prismaError);
+      (mockPrisma.invoice.update as jest.Mock).mockResolvedValue(mockInvoice);
+
+      await invoiceRepository.updateInvoice('invoice-123', updateWithDates);
+
+      expect(mockPrisma.invoice.update).toHaveBeenCalledWith({
+        where: { id: 'invoice-123' },
+        data: expect.objectContaining({
+          invoiceDate: new Date('2024-02-01'),
+          dueDate: new Date('2024-03-01'),
+        }),
+      });
+    });
+
+    it('should handle update without invoice items', async () => {
+      const updateWithoutItems = {
+        ...mockUpdateInvoiceDto,
+        invoiceItems: undefined,
+      };
+      (mockPrisma.invoice.update as jest.Mock).mockResolvedValue(mockInvoice);
+
+      await invoiceRepository.updateInvoice('invoice-123', updateWithoutItems);
+
+      expect(mockPrisma.invoice.update).toHaveBeenCalledWith({
+        where: { id: 'invoice-123' },
+        data: expect.objectContaining({
+          totalAmount: undefined,
+          invoiceItems: {
+            deleteMany: {},
+            create: [],
+          },
+        }),
+      });
+    });
+  });
+
+  describe('deleteInvoice', () => {
+    it('should delete invoice by id', async () => {
+      (mockPrisma.invoice.delete as jest.Mock).mockResolvedValue(mockInvoice);
+
+      const result = await invoiceRepository.deleteInvoice('invoice-123');
+
+      expect(mockPrisma.invoice.delete).toHaveBeenCalledWith({
+        where: { id: 'invoice-123' },
+      });
+      expect(result).toEqual(mockInvoice);
+    });
+
+    it('should handle delete errors', async () => {
+      (mockPrisma.invoice.delete as jest.Mock).mockRejectedValue(
+        new Error('Invoice not found'),
+      );
 
       await expect(
-        invoiceRepository.updateInvoice(
-          'non-existent-id',
-          mockUpdateInvoiceDto,
-        ),
-      ).rejects.toThrow(prismaError);
+        invoiceRepository.deleteInvoice('non-existent'),
+      ).rejects.toThrow('Invoice not found');
     });
   });
 });

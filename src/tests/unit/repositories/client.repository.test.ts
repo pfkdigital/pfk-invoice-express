@@ -7,7 +7,6 @@ import {
   mockClients,
 } from '../../mocks/client.mock';
 
-// Mock the entire Prisma client
 jest.mock('../../../config/prisma', () => ({
   __esModule: true,
   default: {

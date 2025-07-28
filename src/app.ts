@@ -6,6 +6,7 @@ import { clientsRouter } from './modules/client/client.routes';
 import { graphRouter } from './modules/graph/graph.routes';
 import { errorHandlerMiddleWare } from './middleware/error.middleware';
 import { analyticsRouter } from './modules/analytics/analytics.routes';
+import expressListRoutes from 'express-list-routes';
 
 dotenv.config();
 
@@ -21,12 +22,17 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 const apiRouter = express.Router();
+
 apiRouter.use('/invoices', invoiceRouter);
 apiRouter.use('/clients', clientsRouter);
 apiRouter.use('/graph', graphRouter);
-apiRouter.use('/analytics', analyticsRouter)
+apiRouter.use('/analytics', analyticsRouter);
 
 app.use('/api/v1', apiRouter);
+
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'OK', message: 'Server is running' });
+});
 
 app.use(errorHandlerMiddleWare);
 
