@@ -3,7 +3,9 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import { invoiceRouter } from './modules/invoice/invoice.routes';
 import { clientsRouter } from './modules/client/client.routes';
+import { graphRouter } from './modules/graph/graph.routes';
 import { errorHandlerMiddleWare } from './middleware/error.middleware';
+import { analyticsRouter } from './modules/analytics/analytics.routes';
 
 dotenv.config();
 
@@ -17,8 +19,14 @@ const app = express();
 app.use(cors(corsOptions));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use('/api/v1', invoiceRouter);
-app.use('/api/v1', clientsRouter);
+
+const apiRouter = express.Router();
+apiRouter.use('/invoices', invoiceRouter);
+apiRouter.use('/clients', clientsRouter);
+apiRouter.use('/graph', graphRouter);
+apiRouter.use('/analytics', analyticsRouter)
+
+app.use('/api/v1', apiRouter);
 
 app.use(errorHandlerMiddleWare);
 

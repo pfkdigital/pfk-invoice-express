@@ -7,22 +7,17 @@ import {
 } from '../../types/invoice.schema';
 
 export const invoiceRouter = Router();
+
 invoiceRouter.post(
-  '/invoices',
+  '/',
   validationMiddleware(CreateInvoiceDtoSchema),
-  invoiceController.createInvoice,
+  invoiceController.createInvoice
 );
-invoiceRouter.get('/invoices', invoiceController.getAllInvoices);
-invoiceRouter.get('/invoices/:id', invoiceController.getInvoiceById);
+invoiceRouter.get('/', invoiceController.getAllInvoices);
 invoiceRouter.put(
-  '/invoices/:id',
+  '/:id',
   validationMiddleware(UpdateInvoiceDtoSchema),
-  invoiceController.updateInvoice,
+  invoiceController.updateInvoice
 );
-invoiceRouter.delete('/invoices/:id', invoiceController.deleteInvoice);
-invoiceRouter.get('/invoices/count', invoiceController.getInvoiceCount);
-invoiceRouter.get('/invoices/total', invoiceController.getTotalAmount);
-invoiceRouter.get(
-  '/invoices/overdue-total',
-  invoiceController.getTotalAmountUnpaid,
-);
+invoiceRouter.get('/:id', invoiceController.getInvoiceById);
+invoiceRouter.delete('/:id', invoiceController.deleteInvoice);

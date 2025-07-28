@@ -55,26 +55,3 @@ export const deleteInvoice = async (id: string) => {
     errorHandler(error);
   }
 };
-
-export const getInvoiceCount = async () => {
-  try {
-    return await invoiceRepository.countInvoices();
-  } catch (error) {
-    errorHandler(error);
-  }
-};
-export const getTotalAmount = async () => {
-  try {
-    return await invoiceRepository.getTotalAmount();
-  } catch (error) {
-    errorHandler(error);
-  }
-};
-
-export const getTotalAmountUnpaid = async () => {
-  try {
-    return await invoiceRepository.getTotalAmountUnpaid();
-  } catch (error) {
-    errorHandler(error);
-  }
-};
