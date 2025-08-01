@@ -23,7 +23,8 @@ export const getAllInvoices = async (
   next: NextFunction,
 ) => {
   try {
-    const invoices = await invoiceService.getAllInvoices();
+    const { page, limit, search, sort } = req.query;
+    const invoices = await invoiceService.getAllInvoices(page as string, limit as string, search as string, sort as string);
     res.status(HttpStatus.OK).json(invoices);
   } catch (error) {
     next(error);

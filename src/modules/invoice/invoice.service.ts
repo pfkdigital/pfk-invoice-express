@@ -12,9 +12,14 @@ export const createInvoice = async (data: CreateInvoiceDto) => {
   }
 };
 
-export const getAllInvoices = async () => {
+export const getAllInvoices = async (
+  page: string,
+  limit: string,
+  search: string,
+  sort: string,
+) => {
   try {
-    return await invoiceRepository.getAllInvoices();
+    return await invoiceRepository.getAllInvoices(page, limit, search, sort);
   } catch (error) {
     errorHandler(error);
   }
