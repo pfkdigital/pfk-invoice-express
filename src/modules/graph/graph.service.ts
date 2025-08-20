@@ -5,20 +5,18 @@ export const getMonthlyRevenue = async () => {
   try {
     const monthlyRevenue = await prisma.$queryRaw<
       {
-        month: string;
-        revenue: number;
-        year: number;
+      month_year: string;
+      revenue: number;
       }[]
     >`
-            SELECT
-                TO_CHAR("invoiceDate", 'Month') AS month,
-                EXTRACT(YEAR FROM "invoiceDate") AS year,
-                SUM("totalAmount") AS revenue
-            FROM "Invoice"
-            WHERE "status" = 'PAID'
-            GROUP BY EXTRACT(YEAR FROM "invoiceDate"), EXTRACT(MONTH FROM "invoiceDate"), TO_CHAR("invoiceDate", 'Month')
-            ORDER BY EXTRACT(YEAR FROM "invoiceDate"), EXTRACT(MONTH FROM "invoiceDate");
-        `;
+        SELECT
+          TO_CHAR("invoiceDate", 'YYYY-MM') AS date,
+          SUM("totalAmount") AS revenue
+        FROM "Invoice"
+        WHERE "status" = 'PAID'
+        GROUP BY TO_CHAR("invoiceDate", 'YYYY-MM')
+        ORDER BY TO_CHAR("invoiceDate", 'YYYY-MM');
+      `;
 
     return monthlyRevenue;
   } catch (error) {
