@@ -85,9 +85,9 @@ export const getDashboardData = async (
     ] = await Promise.all([
       graphService.getMonthlyRevenue(),
       graphService.getInvoiceStatusDistribution(),
-      graphService.getTopClientsByRevenue(10),
+      graphService.getTopClientsByRevenue(5),
       graphService.getInvoiceAgingAnalysis(),
-      graphService.getCashFlowProjection(6),
+      graphService.getCashFlowProjection(12),
     ]);
 
     res.status(HttpStatus.OK).json({

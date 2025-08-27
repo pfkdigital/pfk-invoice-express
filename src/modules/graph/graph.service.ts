@@ -5,8 +5,8 @@ export const getMonthlyRevenue = async () => {
   try {
     const monthlyRevenue = await prisma.$queryRaw<
       {
-      month_year: string;
-      revenue: number;
+        month_year: string;
+        revenue: number;
       }[]
     >`
         SELECT
@@ -157,16 +157,16 @@ export const getCashFlowProjection = async (months: number = 12) => {
         actual_inflow: number;
       }[]
     >`
-            SELECT
-                TO_CHAR("dueDate", 'Month') AS month,
-                EXTRACT(YEAR FROM "dueDate") AS year,
-                SUM(CASE WHEN "status" IN ('PENDING', 'OVERDUE') THEN "totalAmount" ELSE 0 END) AS expected_inflow,
-                SUM(CASE WHEN "status" = 'PAID' THEN "totalAmount" ELSE 0 END) AS actual_inflow
-            FROM "Invoice"
-            WHERE "dueDate" >= CURRENT_DATE - INTERVAL '${months} months'
-            GROUP BY EXTRACT(YEAR FROM "dueDate"), EXTRACT(MONTH FROM "dueDate"), TO_CHAR("dueDate", 'Month')
-            ORDER BY EXTRACT(YEAR FROM "dueDate"), EXTRACT(MONTH FROM "dueDate");
-        `;
+      SELECT
+        TO_CHAR("dueDate", 'Month') AS month,
+        EXTRACT(YEAR FROM "dueDate") AS year,
+        ROUND(SUM(CASE WHEN "status" IN ('PENDING', 'OVERDUE') THEN "totalAmount" ELSE 0 END)::numeric, 2) AS expected_inflow,
+        ROUND(SUM(CASE WHEN "status" = 'PAID' THEN "totalAmount" ELSE 0 END)::numeric, 2) AS actual_inflow
+      FROM "Invoice"
+      WHERE "dueDate" >= CURRENT_DATE - INTERVAL '${months} months'
+      GROUP BY EXTRACT(YEAR FROM "dueDate"), EXTRACT(MONTH FROM "dueDate"), TO_CHAR("dueDate", 'Month')
+      ORDER BY EXTRACT(YEAR FROM "dueDate"), EXTRACT(MONTH FROM "dueDate");
+    `;
 
     return cashFlow;
   } catch (error) {
