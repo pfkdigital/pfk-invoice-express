@@ -22,3 +22,8 @@ export interface UpdateClientDto {
     postalCode: string;
   }
 }
+
+export type ClientQueries = {
+  search?: string;
+  sort?: 'asc' | 'desc';
+};

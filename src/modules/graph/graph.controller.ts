@@ -16,15 +16,19 @@ export const getMonthlyRevenue = async (
   }
 };
 
-export const getMonthlyRevenueByClientId = (req:Request, res:Response, next:NextFunction) => {
+export const getMonthlyRevenueByClientId = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
-    const {clientId} = req.params
+    const { clientId } = req.params;
     const monthlyRevenue = graphService.getMonthlyRevenueByClientId(clientId);
     res.status(HttpStatus.OK).json(monthlyRevenue);
   } catch (error) {
     next(error);
   }
-}
+};
 
 export const getInvoiceStatusDistribution = async (
   req: Request,
@@ -40,15 +44,20 @@ export const getInvoiceStatusDistribution = async (
   }
 };
 
-export const getInvoiceStatusDistributionByClientId = (req:Request, res:Response, next:NextFunction) => {
+export const getInvoiceStatusDistributionByClientId = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
-    const {clientId} = req.params
-    const monthlyRevenue = graphService.getInvoiceStatusDistributionByClientId(clientId);
+    const { clientId } = req.params;
+    const monthlyRevenue =
+      graphService.getInvoiceStatusDistributionByClientId(clientId);
     res.status(HttpStatus.OK).json(monthlyRevenue);
   } catch (error) {
     next(error);
   }
-}
+};
 
 export const getTopClientsByRevenue = async (
   req: Request,

@@ -1,6 +1,10 @@
 import * as clientService from './client.service';
 import { Request, Response, NextFunction } from 'express';
-import { CreateClientDto, UpdateClientDto } from '../../types/client.types';
+import {
+  ClientQueries,
+  CreateClientDto,
+  UpdateClientDto,
+} from '../../types/client.types';
 import { HttpStatus } from '../../enums/http-status.enum';
 
 export const createClient = async (
@@ -23,7 +27,13 @@ export const getAllClients = async (
   next: NextFunction,
 ) => {
   try {
-    const clients = await clientService.getAllClients();
+    const { search, sort } = req.query as ClientQueries;
+
+    const clients = await clientService.getAllClients(
+      search,
+      sort,
+    );
+
     res.status(HttpStatus.OK).json(clients);
   } catch (error) {
     next(error);
@@ -37,7 +47,7 @@ export const getClientById = async (
 ) => {
   try {
     const { clientId } = req.params;
-    console.log("Fetching client with ID:", clientId); // Debugging log
+    console.log('Fetching client with ID:', clientId); // Debugging log
     const client = await clientService.getClientById(clientId);
     res.status(HttpStatus.OK).json(client);
   } catch (error) {

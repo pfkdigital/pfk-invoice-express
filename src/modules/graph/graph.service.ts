@@ -54,7 +54,7 @@ export const getMonthlyRevenueByClientId = async (clientId: string) => {
     errorHandler(error);
     throw error;
   }
-}
+};
 
 export const getInvoiceStatusDistribution = async () => {
   try {
@@ -81,7 +81,9 @@ export const getInvoiceStatusDistribution = async () => {
   }
 };
 
-export const getInvoiceStatusDistributionByClientId = async (clientId: string) => {
+export const getInvoiceStatusDistributionByClientId = async (
+  clientId: string,
+) => {
   try {
     const client = await clientService.getClientById(clientId);
     if (!client) {
@@ -110,7 +112,7 @@ export const getInvoiceStatusDistributionByClientId = async (clientId: string) =
     errorHandler(error);
     throw error;
   }
-}
+};
 
 export const getTopClientsByRevenue = async (limit: number = 10) => {
   try {
@@ -171,7 +173,7 @@ export const getInvoiceAgingAnalysis = async () => {
     invoices.forEach((invoice) => {
       const daysOverdue = Math.floor(
         (currentDate.getTime() - new Date(invoice.dueDate).getTime()) /
-        (1000 * 60 * 60 * 24),
+          (1000 * 60 * 60 * 24),
       );
 
       let bucket: keyof typeof agingBuckets;

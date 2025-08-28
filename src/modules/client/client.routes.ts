@@ -11,9 +11,10 @@ clientsRouter.post(
   clientController.createClient,
 );
 clientsRouter.get('/', clientController.getAllClients);
-clientsRouter.get(
+clientsRouter.get('/:clientId', clientController.getClientById);
+clientsRouter.put(
   '/:clientId',
-  clientController.getClientById,
+  validationMiddleware(UpdateInvoiceDtoSchema),
+  clientController.updateClient,
 );
-clientsRouter.put('/:clientId', validationMiddleware(UpdateInvoiceDtoSchema), clientController.updateClient);
 clientsRouter.delete('/:clientId', clientController.deleteClient);
