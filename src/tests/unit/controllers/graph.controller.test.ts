@@ -178,9 +178,9 @@ describe('Graph Controller', () => {
 
             expect(graphService.getMonthlyRevenue).toHaveBeenCalled();
             expect(graphService.getInvoiceStatusDistribution).toHaveBeenCalled();
-            expect(graphService.getTopClientsByRevenue).toHaveBeenCalledWith(10);
+            expect(graphService.getTopClientsByRevenue).toHaveBeenCalledWith(5);
             expect(graphService.getInvoiceAgingAnalysis).toHaveBeenCalled();
-            expect(graphService.getCashFlowProjection).toHaveBeenCalledWith(6);
+            expect(graphService.getCashFlowProjection).toHaveBeenCalledWith(12);
             expect(mockResponse.status).toHaveBeenCalledWith(HttpStatus.OK);
             expect(mockResponse.json).toHaveBeenCalledWith(expect.objectContaining({
                 ...mockData,

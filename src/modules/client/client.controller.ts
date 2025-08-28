@@ -36,8 +36,9 @@ export const getClientById = async (
   next: NextFunction,
 ) => {
   try {
-    const { id } = req.params;
-    const client = await clientService.getClientById(id);
+    const { clientId } = req.params;
+    console.log("Fetching client with ID:", clientId); // Debugging log
+    const client = await clientService.getClientById(clientId);
     res.status(HttpStatus.OK).json(client);
   } catch (error) {
     next(error);
@@ -50,9 +51,9 @@ export const updateClient = async (
   next: NextFunction,
 ) => {
   try {
-    const { id } = req.params;
+    const { clientId } = req.params;
     const data: UpdateClientDto = req.body;
-    const client = await clientService.updateClient(id, data);
+    const client = await clientService.updateClient(clientId, data);
     res.status(HttpStatus.OK).json(client);
   } catch (error) {
     next(error);
@@ -65,8 +66,8 @@ export const deleteClient = async (
   next: NextFunction,
 ) => {
   try {
-    const { id } = req.params;
-    await clientService.deleteClient(id);
+    const { clientId } = req.params;
+    await clientService.deleteClient(clientId);
     res.status(HttpStatus.NO_CONTENT).send();
   } catch (error) {
     next(error);

@@ -1,5 +1,8 @@
 import prisma from '../../config/prisma';
+import * as clientService from '../client/client.service';
 import { errorHandler } from '../../handlers/errorHandler';
+import { AppError } from '../../errors/AppError';
+import { HttpStatus } from '../../enums/http-status.enum';
 
 export const getMonthlyRevenue = async () => {
   try {
@@ -25,6 +28,34 @@ export const getMonthlyRevenue = async () => {
   }
 };
 
+export const getMonthlyRevenueByClientId = async (clientId: string) => {
+  try {
+    const client = await clientService.getClientById(clientId);
+    if (!client) {
+      throw new AppError('Client not found', HttpStatus.NOT_FOUND);
+    }
+    const monthlyRevenue = await prisma.$queryRaw<
+      {
+        month_year: string;
+        revenue: number;
+      }[]
+    >`
+        SELECT
+          TO_CHAR("invoiceDate", 'YYYY-MM') AS date,
+          SUM("totalAmount") AS revenue
+        FROM "Invoice"
+        WHERE "status" = 'PAID' AND "clientId" = ${clientId}
+        GROUP BY TO_CHAR("invoiceDate", 'YYYY-MM')
+        ORDER BY TO_CHAR("invoiceDate", 'YYYY-MM');
+      `;
+
+    return monthlyRevenue;
+  } catch (error) {
+    errorHandler(error);
+    throw error;
+  }
+}
+
 export const getInvoiceStatusDistribution = async () => {
   try {
     const statusDistribution = await prisma.$queryRaw<
@@ -49,6 +80,37 @@ export const getInvoiceStatusDistribution = async () => {
     throw error;
   }
 };
+
+export const getInvoiceStatusDistributionByClientId = async (clientId: string) => {
+  try {
+    const client = await clientService.getClientById(clientId);
+    if (!client) {
+      throw new AppError('Client not found', HttpStatus.NOT_FOUND);
+    }
+
+    const statusDistribution = await prisma.$queryRaw<
+      {
+        status: string;
+        count: number;
+        total_amount: number;
+      }[]
+    >`
+            SELECT
+                "status",
+                COUNT(*)::integer AS count,
+                SUM("totalAmount") AS total_amount
+            FROM "Invoice"
+            WHERE "clientId" = ${clientId}
+            GROUP BY "status"
+            ORDER BY count DESC;
+        `;
+
+    return statusDistribution;
+  } catch (error) {
+    errorHandler(error);
+    throw error;
+  }
+}
 
 export const getTopClientsByRevenue = async (limit: number = 10) => {
   try {
@@ -84,7 +146,6 @@ export const getTopClientsByRevenue = async (limit: number = 10) => {
 
 export const getInvoiceAgingAnalysis = async () => {
   try {
-    // Get all pending/overdue invoices
     const invoices = await prisma.invoice.findMany({
       where: {
         status: {
@@ -98,7 +159,6 @@ export const getInvoiceAgingAnalysis = async () => {
       },
     });
 
-    // Calculate aging in JavaScript
     const currentDate = new Date();
     const agingBuckets = {
       Current: { count: 0, total_amount: 0 },
@@ -111,7 +171,7 @@ export const getInvoiceAgingAnalysis = async () => {
     invoices.forEach((invoice) => {
       const daysOverdue = Math.floor(
         (currentDate.getTime() - new Date(invoice.dueDate).getTime()) /
-          (1000 * 60 * 60 * 24),
+        (1000 * 60 * 60 * 24),
       );
 
       let bucket: keyof typeof agingBuckets;
@@ -131,14 +191,13 @@ export const getInvoiceAgingAnalysis = async () => {
       agingBuckets[bucket].total_amount += invoice.totalAmount;
     });
 
-    // Convert to array format, only return buckets with data
     const result = Object.entries(agingBuckets)
       .map(([age_range, data]) => ({
         age_range,
         count: data.count,
         total_amount: data.total_amount,
       }))
-      .filter((item) => item.count > 0); // Only return buckets with data
+      .filter((item) => item.count > 0);
 
     return result;
   } catch (error) {

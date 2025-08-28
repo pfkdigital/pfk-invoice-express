@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import * as graphService from './graph.service';
 import { HttpStatus } from '../../enums/http-status.enum';
+import ca from 'zod/v4/locales/ca.cjs';
 
 export const getMonthlyRevenue = async (
   req: Request,
@@ -15,6 +16,16 @@ export const getMonthlyRevenue = async (
   }
 };
 
+export const getMonthlyRevenueByClientId = (req:Request, res:Response, next:NextFunction) => {
+  try {
+    const {clientId} = req.params
+    const monthlyRevenue = graphService.getMonthlyRevenueByClientId(clientId);
+    res.status(HttpStatus.OK).json(monthlyRevenue);
+  } catch (error) {
+    next(error);
+  }
+}
+
 export const getInvoiceStatusDistribution = async (
   req: Request,
   res: Response,
@@ -28,6 +39,16 @@ export const getInvoiceStatusDistribution = async (
     next(error);
   }
 };
+
+export const getInvoiceStatusDistributionByClientId = (req:Request, res:Response, next:NextFunction) => {
+  try {
+    const {clientId} = req.params
+    const monthlyRevenue = graphService.getInvoiceStatusDistributionByClientId(clientId);
+    res.status(HttpStatus.OK).json(monthlyRevenue);
+  } catch (error) {
+    next(error);
+  }
+}
 
 export const getTopClientsByRevenue = async (
   req: Request,
