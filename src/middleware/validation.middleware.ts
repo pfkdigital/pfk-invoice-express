@@ -10,8 +10,10 @@ export const validationMiddleware =
   (req: Request, res: Response, next: NextFunction) => {
     try {
       req.body = schema.parse(req.body);
+
       next();
     } catch (err) {
+      console.log('Validation error:', err); // Debugging log
       if (err instanceof ZodError) {
         const errorMap = err.issues.reduce(
           (acc, issue) => {

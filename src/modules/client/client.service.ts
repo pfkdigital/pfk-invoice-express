@@ -11,7 +11,10 @@ export const createClient = async (data: CreateClientDto) => {
   }
 };
 
-export const getAllClients = async (search: string = '', sort: 'asc' | 'desc' = 'asc') => {
+export const getAllClients = async (
+  search: string = '',
+  sort: 'asc' | 'desc' = 'asc',
+) => {
   try {
     return await clientRepository.getAllClients(search, sort);
   } catch (error) {

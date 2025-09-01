@@ -12,14 +12,14 @@ export const getMonthlyRevenue = async () => {
         revenue: number;
       }[]
     >`
-        SELECT
-          TO_CHAR("invoiceDate", 'YYYY-MM') AS date,
-          SUM("totalAmount") AS revenue
-        FROM "Invoice"
-        WHERE "status" = 'PAID'
-        GROUP BY TO_CHAR("invoiceDate", 'YYYY-MM')
-        ORDER BY TO_CHAR("invoiceDate", 'YYYY-MM');
-      `;
+      SELECT
+        TO_CHAR("invoiceDate", 'YYYY-MM') AS month_year,
+        SUM("totalAmount") AS revenue
+      FROM "Invoice"
+      WHERE "status" = 'PAID'
+      GROUP BY TO_CHAR("invoiceDate", 'YYYY-MM')
+      ORDER BY TO_CHAR("invoiceDate", 'YYYY-MM');
+    `;
 
     return monthlyRevenue;
   } catch (error) {
@@ -122,23 +122,20 @@ export const getTopClientsByRevenue = async (limit: number = 10) => {
         client_name: string;
         total_revenue: number;
         invoice_count: number;
-        average_invoice_value: number;
       }[]
-    >`
-            SELECT
-                c.id AS client_id,
-                c."clientName" AS client_name,
-                SUM(i."totalAmount") AS total_revenue,
-                COUNT(i.id)::integer AS invoice_count,
-                AVG(i."totalAmount") AS average_invoice_value
-            FROM "Client" c
-            INNER JOIN "Invoice" i ON c.id = i."clientId"
-            WHERE i."status" = 'PAID'
-            GROUP BY c.id, c."clientName"
-            ORDER BY total_revenue DESC
-            LIMIT ${limit};
-        `;
-
+    >`  
+      SELECT
+          c.id AS client_id,
+          c."clientName" AS client_name,
+          SUM(i."totalAmount") AS total_revenue,
+          COUNT(i.id)::integer AS invoice_count
+      FROM "clients" c
+      INNER JOIN "Invoice" i ON c.id = i."clientId"
+      WHERE i."status" = 'PAID'
+      GROUP BY c.id, c."clientName"
+      ORDER BY total_revenue DESC
+      LIMIT ${limit};
+    `;
     return topClients;
   } catch (error) {
     errorHandler(error);
@@ -163,8 +160,7 @@ export const getInvoiceAgingAnalysis = async () => {
 
     const currentDate = new Date();
     const agingBuckets = {
-      Current: { count: 0, total_amount: 0 },
-      '1-30 days overdue': { count: 0, total_amount: 0 },
+      '0-30 days overdue': { count: 0, total_amount: 0 },
       '31-60 days overdue': { count: 0, total_amount: 0 },
       '61-90 days overdue': { count: 0, total_amount: 0 },
       '90+ days overdue': { count: 0, total_amount: 0 },
@@ -177,10 +173,8 @@ export const getInvoiceAgingAnalysis = async () => {
       );
 
       let bucket: keyof typeof agingBuckets;
-      if (daysOverdue <= 0) {
-        bucket = 'Current';
-      } else if (daysOverdue <= 30) {
-        bucket = '1-30 days overdue';
+      if (daysOverdue <= 30) {
+        bucket = '0-30 days overdue';
       } else if (daysOverdue <= 60) {
         bucket = '31-60 days overdue';
       } else if (daysOverdue <= 90) {

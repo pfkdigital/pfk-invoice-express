@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import * as invoiceService from './invoice.service';
-import { CreateInvoiceDto, UpdateInvoiceDto } from '../../types/invoice.types';
+import { CreateInvoiceDto, InvoiceQueries, UpdateInvoiceDto } from '../../types/invoice.types';
 import { HttpStatus } from '../../enums/http-status.enum';
 
 export const createInvoice = async (
@@ -23,8 +23,8 @@ export const getAllInvoices = async (
   next: NextFunction,
 ) => {
   try {
-    const { page, limit, search, sort } = req.query;
-    const invoices = await invoiceService.getAllInvoices(page as string, limit as string, search as string, sort as string);
+    const { page, limit, search, sort } = req.query as InvoiceQueries;
+    const invoices = await invoiceService.getAllInvoices(page, limit, search || '', sort || 'asc');
     res.status(HttpStatus.OK).json(invoices);
   } catch (error) {
     next(error);

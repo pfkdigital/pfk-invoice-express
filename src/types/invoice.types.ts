@@ -32,3 +32,11 @@ export enum InvoiceStatus {
   PAID = 'PAID',
   OVERDUE = 'OVERDUE',
 }
+
+export type InvoiceQueries = {
+  page: string;
+  limit: string;
+  search?: string;
+  sort?: 'asc' | 'desc';
+};
+

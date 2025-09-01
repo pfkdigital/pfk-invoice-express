@@ -114,14 +114,12 @@ async function main() {
         clientEmail: company.email,
         clientPhone: company.phone,
         clientAddress: {
-          create: [
-            {
-              street: streets[Math.floor(Math.random() * streets.length)],
-              city: cities[Math.floor(Math.random() * cities.length)],
-              postalCode: Math.floor(Math.random() * 90000 + 10000).toString(),
-              country: company.country,
-            },
-          ],
+          create: {
+            street: streets[Math.floor(Math.random() * streets.length)],
+            city: cities[Math.floor(Math.random() * cities.length)],
+            postalCode: Math.floor(Math.random() * 90000 + 10000).toString(),
+            country: company.country,
+          },
         },
       },
     });

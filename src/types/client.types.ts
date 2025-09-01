@@ -11,6 +11,7 @@ export interface CreateClientDto {
 }
 
 export interface UpdateClientDto {
+  id?: string;
   clientName: string;
   clientEmail: string;
   clientPhone: string;

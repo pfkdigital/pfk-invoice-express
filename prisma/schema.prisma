@@ -20,8 +20,10 @@ model Client {
   clientName String @unique
   clientEmail String @unique
   clientPhone String @unique
-  clientAddress Address[]
+  clientAddress Address?
   invoices Invoice[]
+
+  @@map("clients")
 }
 
 model Address {
@@ -30,8 +32,10 @@ model Address {
   city String
   postalCode String
   country String
-  clientId String
+  clientId String @unique
   client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@map("addresses")
 }
 
 model Invoice {
@@ -43,7 +47,7 @@ model Invoice {
   dueDate DateTime
   totalAmount Float
   clientId String
-  client Client @relation(fields: [clientId], references: [id])
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
   invoiceItems InvoiceItem[]
 }
 

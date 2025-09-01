@@ -21,6 +21,7 @@ export const UpdateClientSchema = z.object({
     .string()
     .min(10, 'Phone number must be at least 10 characters long'),
   clientAddress: z.object({
+    id: z.string().min(1, 'Address ID is required').optional(),
     street: z.string().min(1, 'Street is required'),
     city: z.string().min(1, 'City is required'),
     country: z.string().min(1, 'Country is required'),

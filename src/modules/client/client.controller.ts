@@ -47,8 +47,9 @@ export const getClientById = async (
 ) => {
   try {
     const { clientId } = req.params;
-    console.log('Fetching client with ID:', clientId); // Debugging log
+
     const client = await clientService.getClientById(clientId);
+    
     res.status(HttpStatus.OK).json(client);
   } catch (error) {
     next(error);
