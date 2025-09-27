@@ -13,6 +13,7 @@ invoiceRouter.post(
   validationMiddleware(CreateInvoiceDtoSchema),
   invoiceController.createInvoice
 );
+invoiceRouter.get('/all', invoiceController.getInvoices)
 invoiceRouter.get('/', invoiceController.getAllInvoices);
 invoiceRouter.put(
   '/:id',

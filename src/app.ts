@@ -6,7 +6,6 @@ import { clientsRouter } from './modules/client/client.routes';
 import { graphRouter } from './modules/graph/graph.routes';
 import { errorHandlerMiddleWare } from './middleware/error.middleware';
 import { analyticsRouter } from './modules/analytics/analytics.routes';
-import expressListRoutes from 'express-list-routes';
 
 dotenv.config();
 

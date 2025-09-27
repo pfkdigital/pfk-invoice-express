@@ -2,6 +2,8 @@ import { Request, Response, NextFunction } from 'express';
 import * as invoiceService from './invoice.service';
 import { CreateInvoiceDto, InvoiceQueries, UpdateInvoiceDto } from '../../types/invoice.types';
 import { HttpStatus } from '../../enums/http-status.enum';
+import prisma from '../../config/prisma';
+import logger from '../../config/logger';
 
 export const createInvoice = async (
   req: Request,
@@ -16,6 +18,17 @@ export const createInvoice = async (
     next(error);
   }
 };
+
+export const getInvoices = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const invoices = await prisma.invoice.findMany()
+    logger.info('Fetched invoices', { count: invoices.length })
+    res.status(HttpStatus.OK).json(invoices)
+  } catch(error) {
+    logger.error('Error fetching invoices', { error })
+    next(error)
+  }
+}
 
 export const getAllInvoices = async (
   req: Request,

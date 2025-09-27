@@ -9,6 +9,7 @@ export const errorHandlerMiddleWare = (
   res: any,
   next: any,
 ) => {
+  console.log(err)
   if (err instanceof AppError) {
     return res.status(err.statusCode).json({
       status: 'error',

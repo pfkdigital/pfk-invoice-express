@@ -1,21 +1,5 @@
-/*
-  Warnings:
-
-  - You are about to drop the `Address` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `Client` table. If the table is not empty, all the data it contains will be lost.
-
-*/
--- DropForeignKey
-ALTER TABLE "Address" DROP CONSTRAINT "Address_clientId_fkey";
-
--- DropForeignKey
-ALTER TABLE "Invoice" DROP CONSTRAINT "Invoice_clientId_fkey";
-
--- DropTable
-DROP TABLE "Address";
-
--- DropTable
-DROP TABLE "Client";
+-- CreateEnum
+CREATE TYPE "InvoiceStatus" AS ENUM ('PENDING', 'PAID', 'OVERDUE');
 
 -- CreateTable
 CREATE TABLE "clients" (
@@ -39,6 +23,32 @@ CREATE TABLE "addresses" (
     CONSTRAINT "addresses_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "Invoice" (
+    "id" TEXT NOT NULL,
+    "invoiceReference" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+    "status" "InvoiceStatus" NOT NULL,
+    "invoiceDate" TIMESTAMP(3) NOT NULL,
+    "dueDate" TIMESTAMP(3) NOT NULL,
+    "totalAmount" DOUBLE PRECISION NOT NULL,
+    "clientId" TEXT NOT NULL,
+
+    CONSTRAINT "Invoice_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "InvoiceItem" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "quantity" INTEGER NOT NULL,
+    "unitPrice" DOUBLE PRECISION NOT NULL,
+    "invoiceId" TEXT NOT NULL,
+
+    CONSTRAINT "InvoiceItem_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "clients_clientName_key" ON "clients"("clientName");
 
@@ -51,8 +61,14 @@ CREATE UNIQUE INDEX "clients_clientPhone_key" ON "clients"("clientPhone");
 -- CreateIndex
 CREATE UNIQUE INDEX "addresses_clientId_key" ON "addresses"("clientId");
 
+-- CreateIndex
+CREATE UNIQUE INDEX "Invoice_invoiceReference_key" ON "Invoice"("invoiceReference");
+
 -- AddForeignKey
 ALTER TABLE "addresses" ADD CONSTRAINT "addresses_clientId_fkey" FOREIGN KEY ("clientId") REFERENCES "clients"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Invoice" ADD CONSTRAINT "Invoice_clientId_fkey" FOREIGN KEY ("clientId") REFERENCES "clients"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "InvoiceItem" ADD CONSTRAINT "InvoiceItem_invoiceId_fkey" FOREIGN KEY ("invoiceId") REFERENCES "Invoice"("id") ON DELETE CASCADE ON UPDATE CASCADE;

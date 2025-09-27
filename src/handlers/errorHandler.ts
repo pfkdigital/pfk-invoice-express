@@ -4,6 +4,7 @@ import { ClientNotFoundError } from '../errors/ClientNotFoundError';
 import { PrismaError } from '../errors/PrismaError';
 
 export const errorHandler = (err: any) => {
+  console.log("Hi")
   if (err instanceof PrismaError) {
     throw new PrismaError(
       `Error performing operation on ${err.meta.modelName}, please check the value of the field: ${err.meta.target.join(',')}`,

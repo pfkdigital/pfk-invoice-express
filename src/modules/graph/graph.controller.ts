@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import * as graphService from './graph.service';
 import { HttpStatus } from '../../enums/http-status.enum';
-import ca from 'zod/v4/locales/ca.cjs';
 
 export const getMonthlyRevenue = async (
   req: Request,
@@ -106,6 +105,7 @@ export const getDashboardData = async (
   next: NextFunction,
 ) => {
   try {
+    console.log("Hi")
     const [
       monthlyRevenue,
       statusDistribution,

@@ -27,7 +27,7 @@ export const getAllClients = async (
   sort: 'asc' | 'desc' = 'asc',
 ) => {
 
-  return await prisma.client.findMany({
+  return prisma.client.findMany({
     include: {
       clientAddress: true,
     },
