@@ -1,11 +1,11 @@
 import * as clientService from './client.service';
 import { Request, Response, NextFunction } from 'express';
 import {
-  ClientQueries,
   CreateClientDto,
   UpdateClientDto,
 } from '../../types/client.types';
 import { HttpStatus } from '../../enums/http-status.enum';
+import { Queries } from '../../types/invoice.types';
 
 export const createClient = async (
   req: Request,
@@ -27,11 +27,13 @@ export const getAllClients = async (
   next: NextFunction,
 ) => {
   try {
-    const { search, sort } = req.query as ClientQueries;
+    const { search, sort, page, limit } = req.query as Queries;
 
     const clients = await clientService.getAllClients(
-      search,
-      sort,
+      page,
+      limit,
+      search || '',
+      sort || 'asc',
     );
 
     res.status(HttpStatus.OK).json(clients);

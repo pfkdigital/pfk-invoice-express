@@ -1,5 +1,4 @@
 export interface CreateInvoiceDto {
-  invoiceReference: string;
   description: string;
   status: InvoiceStatus;
   invoiceDate: string;
@@ -7,6 +6,7 @@ export interface CreateInvoiceDto {
   totalAmount?: number;
   clientId: string;
   invoiceItems: InvoiceItemDto[];
+  // invoiceReference is auto-generated, so not included in create DTO
 }
 
 export interface UpdateInvoiceDto {
@@ -33,7 +33,7 @@ export enum InvoiceStatus {
   OVERDUE = 'OVERDUE',
 }
 
-export type InvoiceQueries = {
+export type Queries = {
   page: string;
   limit: string;
   search?: string;

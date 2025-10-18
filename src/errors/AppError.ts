@@ -6,7 +6,6 @@ export class AppError extends Error {
     super(message);
     this.statusCode = statusCode;
     this.message = message;
-    // Capture the stack trace for debugging purposes
     Error.captureStackTrace(this);
   }
 }

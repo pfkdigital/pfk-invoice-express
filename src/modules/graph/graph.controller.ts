@@ -43,16 +43,16 @@ export const getInvoiceStatusDistribution = async (
   }
 };
 
-export const getInvoiceStatusDistributionByClientId = (
+export const getInvoiceStatusDistributionByClientId = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
   try {
     const { clientId } = req.params;
-    const monthlyRevenue =
-      graphService.getInvoiceStatusDistributionByClientId(clientId);
-    res.status(HttpStatus.OK).json(monthlyRevenue);
+    const statusDistribution =
+      await graphService.getInvoiceStatusDistributionByClientId(clientId);
+    res.status(HttpStatus.OK).json(statusDistribution);
   } catch (error) {
     next(error);
   }
@@ -105,7 +105,6 @@ export const getDashboardData = async (
   next: NextFunction,
 ) => {
   try {
-    console.log("Hi")
     const [
       monthlyRevenue,
       statusDistribution,

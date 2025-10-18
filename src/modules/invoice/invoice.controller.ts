@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import * as invoiceService from './invoice.service';
-import { CreateInvoiceDto, InvoiceQueries, UpdateInvoiceDto } from '../../types/invoice.types';
+import { CreateInvoiceDto, Queries, UpdateInvoiceDto } from '../../types/invoice.types';
 import { HttpStatus } from '../../enums/http-status.enum';
 import prisma from '../../config/prisma';
 import logger from '../../config/logger';
@@ -36,7 +36,7 @@ export const getAllInvoices = async (
   next: NextFunction,
 ) => {
   try {
-    const { page, limit, search, sort } = req.query as InvoiceQueries;
+    const { page, limit, search, sort } = req.query as Queries;
     const invoices = await invoiceService.getAllInvoices(page, limit, search || '', sort || 'asc');
     res.status(HttpStatus.OK).json(invoices);
   } catch (error) {

@@ -12,11 +12,13 @@ export const createClient = async (data: CreateClientDto) => {
 };
 
 export const getAllClients = async (
-  search: string = '',
-  sort: 'asc' | 'desc' = 'asc',
+  page: string,
+  limit: string,
+  search: string,
+  sort: 'asc' | 'desc',
 ) => {
   try {
-    return await clientRepository.getAllClients(search, sort);
+    return await clientRepository.getAllClients(page, limit, search, sort);
   } catch (error) {
     errorHandler(error);
   }

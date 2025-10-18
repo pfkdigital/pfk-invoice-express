@@ -12,10 +12,6 @@ graphRouter.get(
   '/status-distribution',
   graphController.getInvoiceStatusDistribution,
 );
-graphRouter.get(
-  '/status-distribution/clients/:clientId',
-  graphController.getInvoiceStatusDistributionByClientId,
-);
 graphRouter.get('/top-clients', graphController.getTopClientsByRevenue);
 graphRouter.get('/aging-analysis', graphController.getInvoiceAgingAnalysis);
 graphRouter.get('/cash-flow', graphController.getCashFlowProjection);
@@ -23,6 +19,10 @@ graphRouter.get('/payment-trends', graphController.getPaymentTrends);
 graphRouter.get(
   '/client/:clientId/revenue',
   graphController.getRevenueByClient,
+);
+graphRouter.get(
+  '/clients/:clientId/status-distribution',
+  graphController.getInvoiceStatusDistributionByClientId,
 );
 graphRouter.get('/dashboard', graphController.getDashboardData);
 

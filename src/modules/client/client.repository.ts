@@ -23,22 +23,35 @@ export const createClient = async (data: CreateClientDto) =>
   });
 
 export const getAllClients = async (
+  page: string = '1',
+  limit: string = '20',
   search: string = '',
   sort: 'asc' | 'desc' = 'asc',
 ) => {
+  // Validate and sanitize parameters
+  const pageNum = parseInt(page) || 1;
+  const limitNum = parseInt(limit) || 20;
+  const searchTerm = search || '';
+  const sortOrder = ['asc', 'desc'].includes(sort) ? sort : 'asc';
+
+  // Ensure valid pagination values
+  const validPage = Math.max(1, pageNum);
+  const validLimit = Math.min(Math.max(1, limitNum), 100); // Cap at 100
 
   return prisma.client.findMany({
     include: {
       clientAddress: true,
     },
+    skip: (validPage - 1) * validLimit,
+    take: validLimit,
     where: {
       clientName: {
-        contains: search || '',
+        contains: searchTerm,
         mode: 'insensitive',
       },
     },
     orderBy: {
-      clientName: sort,
+      clientName: sortOrder,
     },
   });
 };

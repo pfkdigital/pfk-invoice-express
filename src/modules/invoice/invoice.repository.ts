@@ -1,10 +1,13 @@
 import prisma from '../../config/prisma';
 import { CreateInvoiceDto, UpdateInvoiceDto } from '../../types/invoice.types';
+import { generateInvoiceReference } from '../../utils/generate-invoice-reference';
 
-export const createInvoice = async (data: CreateInvoiceDto) =>
-  await prisma.invoice.create({
+export const createInvoice = async (data: CreateInvoiceDto) => {
+  const invoiceReference = await generateInvoiceReference();
+
+  return await prisma.invoice.create({
     data: {
-      invoiceReference: data.invoiceReference,
+      invoiceReference,
       description: data.description,
       status: data.status,
       invoiceDate: new Date(data.invoiceDate),
@@ -23,8 +26,13 @@ export const createInvoice = async (data: CreateInvoiceDto) =>
         })),
       },
     },
+    include: {
+      client: true,
+      invoiceItems: true,
+    },
   });
-  
+};
+
 export const getAllInvoices = async (
   page: string = '1',
   limit: string = '20',
@@ -57,8 +65,19 @@ export const getInvoiceById = async (id: string) =>
     },
   });
 
-export const updateInvoice = async (id: string, data: UpdateInvoiceDto) =>
-  await prisma.invoice.update({
+export const updateInvoice = async (id: string, data: UpdateInvoiceDto) => {
+  // Calculate total amount only if invoiceItems are provided
+  const totalAmount =
+    data.invoiceItems &&
+    Array.isArray(data.invoiceItems) &&
+    data.invoiceItems.length > 0
+      ? data.invoiceItems.reduce(
+          (sum, item) => sum + item.quantity * item.unitPrice,
+          0,
+        )
+      : undefined;
+
+  return await prisma.invoice.update({
     where: { id },
     data: {
       invoiceReference: data.invoiceReference,
@@ -66,10 +85,7 @@ export const updateInvoice = async (id: string, data: UpdateInvoiceDto) =>
       status: data.status,
       invoiceDate: data.invoiceDate ? new Date(data.invoiceDate) : undefined,
       dueDate: data.dueDate ? new Date(data.dueDate) : undefined,
-      totalAmount: data.invoiceItems?.reduce(
-        (sum, item) => sum + item.quantity * item.unitPrice,
-        0,
-      ),
+      totalAmount,
       invoiceItems: {
         deleteMany: {},
         create:
@@ -82,6 +98,7 @@ export const updateInvoice = async (id: string, data: UpdateInvoiceDto) =>
       },
     },
   });
+};
 
 export const deleteInvoice = async (id: string) =>
   await prisma.invoice.delete({

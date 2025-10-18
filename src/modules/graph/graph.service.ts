@@ -85,9 +85,27 @@ export const getInvoiceStatusDistributionByClientId = async (
   clientId: string,
 ) => {
   try {
+    // Validate input
+    if (!clientId || typeof clientId !== 'string') {
+      throw new AppError(
+        'Client ID is required and must be a valid string',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    // Verify client exists
     const client = await clientService.getClientById(clientId);
     if (!client) {
       throw new AppError('Client not found', HttpStatus.NOT_FOUND);
+    }
+
+    // Check if client has any invoices
+    const invoiceCount = await prisma.invoice.count({
+      where: { clientId },
+    });
+
+    if (invoiceCount === 0) {
+      return []; // Return empty array if no invoices found
     }
 
     const statusDistribution = await prisma.$queryRaw<
@@ -97,17 +115,22 @@ export const getInvoiceStatusDistributionByClientId = async (
         total_amount: number;
       }[]
     >`
-            SELECT
-                "status",
-                COUNT(*)::integer AS count,
-                SUM("totalAmount") AS total_amount
-            FROM "Invoice"
-            WHERE "clientId" = ${clientId}
-            GROUP BY "status"
-            ORDER BY count DESC;
-        `;
+      SELECT
+        "status",
+        COUNT(*)::integer AS count,
+        ROUND(SUM("totalAmount")::numeric, 2)::float AS total_amount
+      FROM "Invoice"
+      WHERE "clientId" = ${clientId}
+      GROUP BY "status"
+      ORDER BY count DESC;
+    `;
 
-    return statusDistribution;
+    const formattedResult = statusDistribution.map(item => ({
+      ...item,
+      total_amount: Number(item.total_amount) || 0,
+    }));
+    
+    return formattedResult;
   } catch (error) {
     errorHandler(error);
     throw error;
@@ -233,30 +256,87 @@ export const getCashFlowProjection = async (months: number = 12) => {
 export const getRevenueByClient = async (
   clientId: string,
   months: number = 12,
-) => {
+): Promise<
+  {
+    month: string;
+    year: number;
+    revenue: number;
+    invoice_count: number;
+    month_year: string;
+  }[]
+> => {
   try {
-    const clientRevenue = await prisma.$queryRaw<
-      {
-        month: string;
-        year: number;
-        revenue: number;
-        invoice_count: number;
-      }[]
-    >`
-            SELECT
-                TO_CHAR("invoiceDate", 'Month') AS month,
-                EXTRACT(YEAR FROM "invoiceDate") AS year,
-                SUM("totalAmount") AS revenue,
-                COUNT(*)::integer AS invoice_count
-            FROM "Invoice"
-            WHERE "clientId" = ${clientId}
-                AND "status" = 'PAID'
-                AND "invoiceDate" >= CURRENT_DATE - INTERVAL '${months} months'
-            GROUP BY EXTRACT(YEAR FROM "invoiceDate"), EXTRACT(MONTH FROM "invoiceDate"), TO_CHAR("invoiceDate", 'Month')
-            ORDER BY EXTRACT(YEAR FROM "invoiceDate"), EXTRACT(MONTH FROM "invoiceDate");
-        `;
+    if (!clientId || typeof clientId !== 'string') {
+      throw new AppError(
+        'Client ID is required and must be a valid string',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
 
-    return clientRevenue;
+    if (!Number.isInteger(months) || months <= 0 || months > 120) {
+      throw new AppError(
+        'Months must be a positive integer between 1 and 120',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const client = await clientService.getClientById(clientId);
+    if (!client) {
+      throw new AppError('Client not found', HttpStatus.NOT_FOUND);
+    }
+
+    const invoices = await prisma.invoice.findMany({
+      where: {
+        clientId,
+        status: 'PAID',
+        invoiceDate: {
+          gte: new Date(new Date().setMonth(new Date().getMonth() - months)),
+          lte: new Date(),
+        },
+      },
+      select: {
+        invoiceDate: true,
+        totalAmount: true,
+      },
+    });
+
+    const monthlyData = new Map<string, {
+      month: string;
+      year: number;
+      revenue: number;
+      invoice_count: number;
+      month_year: string;
+    }>();
+
+    invoices.forEach(invoice => {
+      const date = new Date(invoice.invoiceDate);
+      const year = date.getFullYear();
+      const month = date.toLocaleString('default', { month: 'long' });
+      const monthYear = `${year}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      
+      const key = monthYear;
+      if (!monthlyData.has(key)) {
+        monthlyData.set(key, {
+          month,
+          year,
+          revenue: 0,
+          invoice_count: 0,
+          month_year: monthYear,
+        });
+      }
+      
+      const data = monthlyData.get(key)!;
+      data.revenue = Math.round((data.revenue + invoice.totalAmount) * 100) / 100;
+      data.invoice_count += 1;
+    });
+
+    const result = Array.from(monthlyData.values())
+      .sort((a, b) => {
+        if (a.year !== b.year) return b.year - a.year;
+        return parseInt(b.month_year.split('-')[1]) - parseInt(a.month_year.split('-')[1]);
+      });
+
+    return result;
   } catch (error) {
     errorHandler(error);
     throw error;

@@ -1,17 +1,17 @@
 import z from 'zod';
 
 export const CreateInvoiceDtoSchema = z.object({
-  invoiceReference: z.string(),
-  description: z.string(),
+  description: z.string().optional(),
   status: z.enum(['PENDING', 'PAID', 'OVERDUE']),
-  invoiceDate: z.string().refine((date) => !isNaN(Date.parse(date)), {
-    message: 'Invalid date format',
-  }),
-  dueDate: z.string().refine((date) => !isNaN(Date.parse(date)), {
-    message: 'Invalid date format',
-  }),
-  userId: z.string(),
-  items: z.array(
+  invoiceDate: z
+    .string()
+    .refine((val) => !isNaN(Date.parse(val)), 'Invalid ISO date string'),
+  dueDate: z
+    .string()
+    .refine((val) => !isNaN(Date.parse(val)), 'Invalid ISO date string'),
+  clientId: z.string(),
+  totalAmount: z.number(),
+  invoiceItems: z.array(
     z.object({
       name: z.string(),
       description: z.string(),
